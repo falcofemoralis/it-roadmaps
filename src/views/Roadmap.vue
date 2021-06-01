@@ -7,7 +7,6 @@
         v-for="(parentNode, index) in roadmapData"
         :key="index"
       >
-        <!-- Roadmap-block -->
         <ul
           class="roadmap-nodes"
           :class="index % 2 == 0 ? 'roadmap-inverted' : ''"
@@ -18,9 +17,7 @@
           >
             <ul>
               <li v-for="(node, index) in block" :key="index">
-                <div class="roadmap-node">
-                  <h3>{{ node.name }}</h3>
-                </div>
+                <RoadmapNode :node="node" />
               </li>
             </ul>
           </li>
@@ -34,38 +31,50 @@
 import { defineComponent } from "vue";
 import Node, { Opinion } from "../models/Node";
 import Task from "../models/Task";
+import RoadmapNode from "../components/RoadmapNode.vue";
 
 let roadmapData = [
   new Node("Internet", {
-    childNodes: [
-      new Task("How does the internet work?", { opinion: Opinion.Recommended }),
-      new Node("What is HTTP", { opinion: Opinion.Recommended }),
-      new Node("Browsers and how they work?", { opinion: Opinion.Recommended }),
-      new Node("DNS and how it works?", { opinion: Opinion.Recommended }),
-      new Node("What is Domain Name?", { opinion: Opinion.Recommended }),
-      new Node("What is hosting?", { opinion: Opinion.Recommended }),
+    opinion: Opinion.Recommended,
+    tasks: [
+      new Task("How does the internet work?", Opinion.Recommended),
+      new Task("What is HTTP", Opinion.Recommended),
+      new Task("Browsers and how they work?", Opinion.Recommended),
+      new Task("DNS and how it works?", Opinion.Recommended),
+      new Task("What is Domain Name?", Opinion.Recommended),
+      new Task("What is hosting?", Opinion.Recommended),
+    ],
+  }),
+  new Node("HTML", {
+    tasks: [
+      new Task("Learn the basisc", Opinion.Recommended),
+      new Task("Writing Semantic HTML", Opinion.Extra),
+      new Task("Forms and validation", Opinion.Recommended),
+      new Task("Conventions and Best Practices", Opinion.Recommended),
+      new Task("Accessibility", Opinion.Extra),
+      new Task("SEO Basics", Opinion.Extra),
     ],
   }),
   new Node("Build Tools", {
     childNodes: [
       new Node("Listeners and formatters", {
-        childNodes: [
-          new Node("Prettier", { opinion: Opinion.Recommended }),
-          new Node("ESLint", { opinion: Opinion.Recommended }),
-          new Node("StandartJS", { opinion: Opinion.Recommended }),
+        tasks: [
+          new Task("Prettier", Opinion.Recommended),
+          new Task("ESLint", Opinion.Recommended),
+          new Task("StandartJS", Opinion.Recommended),
         ],
       }),
       new Node("Task Runners", {
-        childNodes: [
-          new Node("npm scripts", { opinion: Opinion.Recommended }),
-          new Node("Gulp", { opinion: Opinion.Recommended }),
+        tasks: [
+          new Task("npm scripts", Opinion.Recommended),
+          new Task("Gulp", Opinion.Recommended),
         ],
       }),
       new Node("Module Bundlers", {
-        childNodes: [
-          new Node("Webpack", { opinion: Opinion.Recommended }),
-          new Node("Rollup", { opinion: Opinion.Recommended }),
-          new Node("Parcel", { opinion: Opinion.Recommended }),
+        tasks: [
+          new Task("Webpack", Opinion.Recommended),
+          new Task("Rollup", Opinion.Recommended),
+          new Task("Parcel", Opinion.Recommended),
         ],
       }),
     ],
@@ -73,7 +82,9 @@ let roadmapData = [
 ];
 
 export default defineComponent({
-  components: {},
+  components: {
+    RoadmapNode,
+  },
   data() {
     return {
       roadmapData: roadmapData,
@@ -113,14 +124,15 @@ export default defineComponent({
 </script>
 
 
-<style lang="scss">
+<style lang="scss" scoped>
 .roadmap {
   padding: 20px 0 20px;
   position: relative;
   display: flex;
   flex-direction: column;
+  background-color: #fafafa;
 
-  &:before {
+  /*   &:before {
     top: 0;
     bottom: 0;
     position: absolute;
@@ -128,7 +140,7 @@ export default defineComponent({
     width: 3px;
     background-color: rgb(0, 0, 0);
     left: 50%;
-  }
+  } */
 
   .roadmap-block {
     margin-bottom: 50px;
@@ -136,22 +148,18 @@ export default defineComponent({
     justify-content: center;
   }
 
-  .roadmap-node {
-    width: 100px;
-    height: 36px;
-    padding: 10px;
-    margin: 15px;
-    background: #ed8146;
-  }
-
   .roadmap-nodes {
     display: flex;
     align-items: center;
-    flex-direction: column;
+    flex-direction: row;
   }
 
   .roadmap-inverted {
-    flex-direction: column;
+    flex-direction: row-reverse;
   }
+}
+
+.wrapper {
+  max-width: none !important;
 }
 </style>

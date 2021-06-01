@@ -30,6 +30,8 @@ $header-height: 50px;
   padding: 30px;
   display: flex;
   justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .user__panel {
