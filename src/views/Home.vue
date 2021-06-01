@@ -1,18 +1,37 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    <ul class="roadmap__shelf">
+      <li v-for="roadmap in roadmaps" :key="roadmap">
+        <RoadmapCard :roadmapName="roadmap" />
+      </li>
+    </ul>
   </div>
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+import { defineComponent } from "vue";
+import RoadmapCard from "../components/RoadmapCard.vue";
 
-@Options({
+export default defineComponent({
   components: {
-    HelloWorld,
+    RoadmapCard,
   },
-})
-export default class Home extends Vue {}
+  data() {
+    return {
+      roadmaps: ["11", "12", "13", "14"],
+    };
+  },
+});
 </script>
+
+<style lang="scss" scoped>
+.roadmap__shelf {
+  display: grid;
+  grid-gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+
+  li {
+    margin: 8px;
+  }
+}
+</style>
