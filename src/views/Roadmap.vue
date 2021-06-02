@@ -1,16 +1,16 @@
 <template>
   <div>
-    <h1>This is an roadmap page of {{ $route.params.id }}</h1>
+    <div class="roadmap-info">
+      <h2>This is an roadmap page of {{ $route.params.id }}</h2>
+      <span>Step by step guide to becoming a modern frontend developer</span>
+    </div>
     <ul class="roadmap">
       <li
         class="roadmap-block"
         v-for="(parentNode, index) in roadmapData"
         :key="index"
       >
-        <ul
-          class="roadmap-nodes"
-          :class="index % 2 == 0 ? 'roadmap-inverted' : ''"
-        >
+        <ul class="roadmap-nodes">
           <li
             v-for="(block, index) in getRoadmapBlocks(parentNode)"
             :key="index"
@@ -35,7 +35,6 @@ import RoadmapNode from "../components/RoadmapNode.vue";
 
 let roadmapData = [
   new Node("Internet", {
-    opinion: Opinion.Recommended,
     tasks: [
       new Task("How does the internet work?", Opinion.Recommended),
       new Task("What is HTTP", Opinion.Recommended),
@@ -79,6 +78,19 @@ let roadmapData = [
       }),
     ],
   }),
+  new Node("Version Control Systems", {
+    childNodes: [
+      new Node("Basic usage of git", { opinion: Opinion.Recommended }),
+      new Node("Repo hosting services", {
+        tasks: [
+          new Task("GitHub", Opinion.Recommended),
+          new Task("GitLab", Opinion.Extra),
+          new Task("Bitbucket", Opinion.Extra),
+        ],
+      }),
+    ],
+  }),
+  new Node("Keep learning"),
 ];
 
 export default defineComponent({
@@ -125,22 +137,41 @@ export default defineComponent({
 
 
 <style lang="scss" scoped>
+.roadmap-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 25px;
+
+  h2 {
+    font-weight: 700;
+    margin-bottom: 12px;
+    font-size: 48px;
+  }
+
+  span {
+    font-size: 16px;
+    color: rgb(68, 68, 68);
+  }
+}
+
 .roadmap {
   padding: 20px 0 20px;
   position: relative;
   display: flex;
   flex-direction: column;
-  background-color: #fafafa;
+  background-color: #ebebeb;
 
-  /*   &:before {
+  &:before {
     top: 0;
     bottom: 0;
     position: absolute;
     content: " ";
     width: 3px;
-    background-color: rgb(0, 0, 0);
+    background-color: rgb(102, 102, 102);
     left: 50%;
-  } */
+  }
 
   .roadmap-block {
     margin-bottom: 50px;
@@ -151,11 +182,7 @@ export default defineComponent({
   .roadmap-nodes {
     display: flex;
     align-items: center;
-    flex-direction: row;
-  }
-
-  .roadmap-inverted {
-    flex-direction: row-reverse;
+    flex-direction: column;
   }
 }
 

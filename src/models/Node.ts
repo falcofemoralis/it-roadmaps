@@ -12,11 +12,14 @@ export class Node {
     childNodes: Node[] | undefined;
     tasks: Task[] | undefined;
 
-    constructor(name: string, options: any) {
+    constructor(name: string, options?: any) {
         this.name = name;
-        this.opinion = options.opinion;
-        this.childNodes = options.childNodes;
-        this.tasks = options.tasks;
+        if (options) {
+            this.opinion = options.opinion;
+            this.childNodes = options.childNodes;
+            this.tasks = options.tasks;
+        }
+
     }
 }
 

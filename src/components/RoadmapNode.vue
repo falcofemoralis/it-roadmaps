@@ -7,12 +7,21 @@
       <li v-for="(task, index) in node.tasks" :key="index">
         <div class="roadmap-task">
           <span class="task-name"> {{ task.name }}</span>
-          <span
+          <span class="task-description"> {{ task.description }}</span>
+          <div class="task-controls">
+            <div>
+              <span>×</span>
+              <span>✓</span>
+            </div>
+            <span @click="showMsg('You know it!')">I know it</span>
+          </div>
+          <div
             v-if="task.opinion"
             class="opinion"
             :style="'background:' + task.opinion"
-            >✓
-          </span>
+          >
+            ✓
+          </div>
         </div>
       </li>
     </ul>
@@ -28,7 +37,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import Node, { Opinion } from "../models/Node";
+import Node from "../models/Node";
 
 export default defineComponent({
   name: "RoadmapNode",
@@ -38,7 +47,16 @@ export default defineComponent({
       required: true,
     },
   },
-  methods: {},
+  data() {
+    return {
+      currentModal: -1,
+    };
+  },
+  methods: {
+    showMsg(msg: string) {
+      alert(msg);
+    },
+  },
 });
 </script>
 
@@ -74,21 +92,43 @@ export default defineComponent({
     .roadmap-task {
       position: relative;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
       flex-direction: column;
-      min-height: 40px;
+      min-height: 150px;
+      max-width: 250px;
       font-size: 14px;
-      border-radius: 8px;
+      border-radius: 5px;
       background: #69b7fe;
       padding: 20px;
-      cursor: pointer;
 
       .task-name {
+        height: auto;
+        width: 100%;
         padding: 8px;
         color: #145796;
         font-weight: bold;
         font-size: 18px;
+        text-align: start;
+      }
+
+      .task-description {
+        height: auto;
+        width: 100%;
+        text-align: start;
+      }
+
+      .task-controls {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 25px;
+
+        span {
+          color: #fff;
+          font-weight: bold;
+          cursor: pointer;
+        }
       }
     }
   }
