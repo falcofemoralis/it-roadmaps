@@ -2,19 +2,17 @@
   <div class="modal-backdrop">
     <div class="modal">
       <header class="modal-header">
-        <slot name="header"> {{ task.name }}</slot>
+        <slot name="header"></slot>
         <button type="button" class="btn-close" @click="close">x</button>
       </header>
 
       <section class="modal-body">
-        <slot name="body"> This is the default body! </slot>
+        <slot name="body"></slot>
       </section>
 
       <footer class="modal-footer">
-        <slot name="footer"> This is the default footer! </slot>
-        <button type="button" class="btn-green" @click="close">
-          Close Modal
-        </button>
+        <slot name="footer"></slot>
+        <button type="button" class="btn-green" @click="save">Save</button>
       </footer>
     </div>
   </div>
@@ -25,15 +23,13 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-  name: "TaskModal",
-  props: {
-    task: {
-      required: true,
-    },
-  },
+  name: "DataModal",
   methods: {
     close() {
       this.$emit("close");
+    },
+    save() {
+      this.$emit("save");
     },
   },
 });
@@ -104,5 +100,6 @@ export default defineComponent({
   background: #4aae9b;
   border: 1px solid #4aae9b;
   border-radius: 2px;
+  cursor: pointer;
 }
 </style>

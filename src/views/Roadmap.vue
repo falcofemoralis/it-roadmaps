@@ -3,27 +3,46 @@
     <div class="roadmap-info">
       <h2>This is an roadmap page of {{ $route.params.id }}</h2>
       <span>Step by step guide to becoming a modern frontend developer</span>
+      <button @click="saveRoadmap">Save roadmap</button>
     </div>
     <ul class="roadmap">
       <li
         class="roadmap-block"
-        v-for="(parentNode, index) in roadmapData"
+        v-for="(block, index) in getRoadmapBlocks(roadmapData)"
         :key="index"
       >
         <ul class="roadmap-nodes">
-          <li
-            v-for="(block, index) in getRoadmapBlocks(parentNode)"
-            :key="index"
-          >
+          <li v-for="(nodes, index) in block" :key="index">
             <ul>
-              <li v-for="(node, index) in block" :key="index">
-                <RoadmapNode :node="node" />
+              <li v-for="node in nodes" :key="node.id">
+                <RoadmapNode :node="node" @addTask="createTask(node)" />
               </li>
             </ul>
           </li>
+          <button @click="createNode(block[0][0].id)">New node</button>
         </ul>
       </li>
     </ul>
+    <div style="display: flex; flex-direction: column">
+      <button @click="createNode()">New block</button>
+    </div>
+    <DataModal v-show="nodeDataActive" @save="saveNode" @close="close(0)">
+      <template v-slot:header>
+        <span>Enter node info</span>
+      </template>
+      <template v-slot:body>
+        <input type="text" v-model="nodeTmp.name" />
+      </template>
+    </DataModal>
+    <DataModal v-show="taskDataActive" @save="saveTask" @close="close(1)">
+      <template v-slot:header>
+        <span>Enter task info</span>
+      </template>
+      <template v-slot:body>
+        <input type="text" v-model="taskTmp.name" />
+        <input type="text" v-model="taskTmp.description" />
+      </template>
+    </DataModal>
   </div>
 </template>
 
@@ -32,105 +51,114 @@ import { defineComponent } from "vue";
 import Node, { Opinion } from "../models/Node";
 import Task from "../models/Task";
 import RoadmapNode from "../components/RoadmapNode.vue";
+import DataModal from "../components/DataModal.vue";
 
-let roadmapData = [
-  new Node("Internet", {
-    tasks: [
-      new Task("How does the internet work?", Opinion.Recommended),
-      new Task("What is HTTP", Opinion.Recommended),
-      new Task("Browsers and how they work?", Opinion.Recommended),
-      new Task("DNS and how it works?", Opinion.Recommended),
-      new Task("What is Domain Name?", Opinion.Recommended),
-      new Task("What is hosting?", Opinion.Recommended),
-    ],
-  }),
-  new Node("HTML", {
-    tasks: [
-      new Task("Learn the basisc", Opinion.Recommended),
-      new Task("Writing Semantic HTML", Opinion.Extra),
-      new Task("Forms and validation", Opinion.Recommended),
-      new Task("Conventions and Best Practices", Opinion.Recommended),
-      new Task("Accessibility", Opinion.Extra),
-      new Task("SEO Basics", Opinion.Extra),
-    ],
-  }),
-  new Node("Build Tools", {
-    childNodes: [
-      new Node("Listeners and formatters", {
-        tasks: [
-          new Task("Prettier", Opinion.Recommended),
-          new Task("ESLint", Opinion.Recommended),
-          new Task("StandartJS", Opinion.Recommended),
-        ],
-      }),
-      new Node("Task Runners", {
-        tasks: [
-          new Task("npm scripts", Opinion.Recommended),
-          new Task("Gulp", Opinion.Recommended),
-        ],
-      }),
-      new Node("Module Bundlers", {
-        tasks: [
-          new Task("Webpack", Opinion.Recommended),
-          new Task("Rollup", Opinion.Recommended),
-          new Task("Parcel", Opinion.Recommended),
-        ],
-      }),
-    ],
-  }),
-  new Node("Version Control Systems", {
-    childNodes: [
-      new Node("Basic usage of git", { opinion: Opinion.Recommended }),
-      new Node("Repo hosting services", {
-        tasks: [
-          new Task("GitHub", Opinion.Recommended),
-          new Task("GitLab", Opinion.Extra),
-          new Task("Bitbucket", Opinion.Extra),
-        ],
-      }),
-    ],
-  }),
-  new Node("Keep learning"),
-];
+const mainNode = new Node("main node", { opinion: Opinion.Recommended });
+const childNode = new Node("child node", {
+  parentId: mainNode.id,
+  tasks: [
+    new Task("How does the internet work?", Opinion.Recommended),
+    new Task("What is HTTP", Opinion.Recommended),
+    new Task("Browsers and how they work?", Opinion.Recommended),
+    new Task("DNS and how it works?", Opinion.Recommended),
+    new Task("What is Domain Name?", Opinion.Recommended),
+    new Task("What is hosting?", Opinion.Recommended),
+  ],
+});
+const VCSNode = new Node("Version Control Systems");
+const BUGNode = new Node("Basic usage of git", {
+  parentId: VCSNode.id,
+  opinion: Opinion.Recommended,
+});
+const RHSNode = new Node("Repo hosting services", {
+  parentId: VCSNode.id,
+  tasks: [
+    new Task("GitHub", Opinion.Recommended),
+    new Task("GitLab", Opinion.Extra),
+    new Task("Bitbucket", Opinion.Extra),
+  ],
+});
 
 export default defineComponent({
   components: {
     RoadmapNode,
+    DataModal,
   },
   data() {
     return {
-      roadmapData: roadmapData,
+      roadmapData: [
+        mainNode,
+        childNode,
+        VCSNode,
+        BUGNode,
+        RHSNode,
+      ] as Array<Node>,
+      nodeDataActive: false as boolean,
+      taskDataActive: false as boolean,
+      nodeTmp: {} as Node,
+      taskTmp: {} as Task,
     };
   },
   methods: {
-    getRoadmapBlocks(parentNode: Node) {
-      let blocks: Node[][] = [];
-      let n = 0;
-      let isChildNodes = true;
-      blocks.push([parentNode]);
+    getRoadmapBlocks(roadmapData: Node[]) {
+      const blocks: Node[][][] = [];
 
-      while (isChildNodes) {
-        let moreChildNodes = false;
-        let block: Node[] = [];
+      for (let i = 0; i < roadmapData.length; i++) {
+        if (!roadmapData[i].parentId) {
+          blocks.push([[roadmapData[i]]]);
+          // roadmapData.splice(i, 1);
+        }
+      }
 
-        for (let i = 0; i < blocks[n].length; i++) {
-          let node: Node = blocks[n][i];
-
-          if (node.childNodes) {
-            for (let j = 0; j < node.childNodes.length; ++j) {
-              if (node.childNodes[j].childNodes) moreChildNodes = true;
-              block.push(node.childNodes[j]);
-            }
+      for (let i = 0; i < roadmapData.length; i++) {
+        for (let j = 0; j < blocks.length; ++j) {
+          if (blocks[j][0][0].id === roadmapData[i].parentId) {
+            if (!blocks[j][1]) blocks[j][1] = [];
+            blocks[j][1].push(roadmapData[i]);
           }
         }
-
-        blocks.push(block);
-        n++;
-        isChildNodes = moreChildNodes;
       }
 
       return blocks;
     },
+    createNode(nodeId: number) {
+      this.nodeTmp = new Node("Noname", { parentId: nodeId ?? null });
+      this.nodeDataActive = true;
+    },
+    createTask(node: Node) {
+      this.taskDataActive = true;
+
+      this.nodeTmp = node;
+      if (!this.nodeTmp.tasks) {
+        this.nodeTmp.tasks = [];
+      }
+      this.taskTmp = new Task("Noname", Opinion.Default);
+    },
+    saveNode() {
+      this.nodeDataActive = false;
+      this.roadmapData.push(this.nodeTmp);
+    },
+    saveTask() {
+      if (this.nodeTmp.tasks) {
+        this.nodeTmp.tasks.push(this.taskTmp);
+      }
+      this.taskDataActive = false;
+    },
+    close(modal: number) {
+      if (modal === 0) {
+        this.nodeDataActive = false;
+      } else if (modal === 1) {
+        this.taskDataActive = false;
+      }
+    },
+    saveRoadmap() {
+      // TODO: server save
+      console.log(this.roadmapData);
+    },
+  },
+  beforeCreate() {
+    // TODO: server load
+    console.log("beforeCreate()");
   },
 });
 </script>

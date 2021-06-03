@@ -25,6 +25,7 @@
         </div>
       </li>
     </ul>
+    <button @click="createTask">New task</button>
     <span
       v-if="node.opinion"
       class="opinion"
@@ -55,6 +56,9 @@ export default defineComponent({
   methods: {
     showMsg(msg: string) {
       alert(msg);
+    },
+    createTask() {
+      this.$emit("addTask");
     },
   },
 });
@@ -142,6 +146,7 @@ export default defineComponent({
     width: 24px;
     color: #fff;
     border-radius: 24px;
+    text-align: center;
   }
 }
 </style>

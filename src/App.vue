@@ -17,17 +17,26 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-* {
+*,
+*::after,
+*::before {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   margin: 0;
   padding: 0;
-  font-size: 14px;
   list-style: none;
   text-decoration: none;
+}
+
+html,
+body{
+    height: 100vh;
+}
+
+body{
+   scroll-behavior: smooth;
 }
 
 /* *,

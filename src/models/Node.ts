@@ -1,6 +1,7 @@
 import Task from "./Task";
 
 export enum Opinion {
+    Default = "#fff",
     Recommended = "#9900ff",
     Alternative = "#39761d",
     Extra = "#9c9b9a",
@@ -8,18 +9,20 @@ export enum Opinion {
 
 export class Node {
     name: string;
+    id: number;
+    parentId: number | undefined;
     opinion: Opinion | undefined;
-    childNodes: Node[] | undefined;
     tasks: Task[] | undefined;
 
     constructor(name: string, options?: any) {
         this.name = name;
+        this.id = Date.now() + Math.floor(Math.random() * 1000);
+
         if (options) {
             this.opinion = options.opinion;
-            this.childNodes = options.childNodes;
             this.tasks = options.tasks;
+            this.parentId = options.parentId;
         }
-
     }
 }
 
