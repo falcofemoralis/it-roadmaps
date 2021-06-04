@@ -10,11 +10,13 @@ export enum Opinion {
 export class Node {
     name: string;
     id: number;
+    roadmapId: number;
     parentId: number | undefined;
     opinion: Opinion | undefined;
     tasks: Task[] | undefined;
 
     constructor(name: string, options?: any) {
+        this.roadmapId = 0;
         this.name = name;
         this.id = Date.now() + Math.floor(Math.random() * 1000);
 

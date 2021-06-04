@@ -53,7 +53,7 @@ import Task from "../models/Task";
 import RoadmapNode from "../components/RoadmapNode.vue";
 import DataModal from "../components/DataModal.vue";
 
-const mainNode = new Node("main node", { opinion: Opinion.Recommended });
+/* const mainNode = new Node("main node", { opinion: Opinion.Recommended });
 const childNode = new Node("child node", {
   parentId: mainNode.id,
   tasks: [
@@ -78,7 +78,7 @@ const RHSNode = new Node("Repo hosting services", {
     new Task("Bitbucket", Opinion.Extra),
   ],
 });
-
+ */
 export default defineComponent({
   components: {
     RoadmapNode,
@@ -86,13 +86,8 @@ export default defineComponent({
   },
   data() {
     return {
-      roadmapData: [
-        mainNode,
-        childNode,
-        VCSNode,
-        BUGNode,
-        RHSNode,
-      ] as Array<Node>,
+      roadmapId: 0 as number,
+      roadmapData: [] as Array<Node>,
       nodeDataActive: false as boolean,
       taskDataActive: false as boolean,
       nodeTmp: {} as Node,
@@ -159,6 +154,11 @@ export default defineComponent({
   beforeCreate() {
     // TODO: server load
     console.log("beforeCreate()");
+
+    fetch("http://localhost:3000/api/roadmap/test")
+      .then((res) => res.json())
+      .then((data) => console.log(data))
+      .catch((err) => console.log(err));
   },
 });
 </script>
