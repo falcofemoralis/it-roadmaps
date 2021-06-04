@@ -1,22 +1,27 @@
 import Task from "./Task";
 
-export enum Opinion {
-    Default = "#fff",
-    Recommended = "#9900ff",
-    Alternative = "#39761d",
-    Extra = "#9c9b9a",
+export class Opinion {
+    id: string;
+    name: string;
+    color: string;
+
+    constructor(id: string, name: string, color: string) {
+        this.id = id;
+        this.name = name;
+        this.color = color;
+    }
 }
 
 export class Node {
     name: string;
     id: number;
-    roadmapId: number;
+    roadmapId: string;
     parentId: number | undefined;
     opinion: Opinion | undefined;
     tasks: Task[] | undefined;
 
-    constructor(name: string, options?: any) {
-        this.roadmapId = 0;
+    constructor(roadmapId: string, name: string, options?: any) {
+        this.roadmapId = roadmapId;
         this.name = name;
         this.id = Date.now() + Math.floor(Math.random() * 1000);
 

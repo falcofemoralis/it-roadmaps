@@ -1,8 +1,11 @@
 import express, { Router } from 'express';
+import RoadmapController from '../controllers/RoadmapController';
 
 const roadmapRouter: Router = express.Router();
+const roadmapController: RoadmapController = new RoadmapController();
 
-roadmapRouter.get("/test", (req, res) => res.send(`{"data": 1}`));
-roadmapRouter.put("/", (req, res) => res.send("update"));
+roadmapRouter.get("/opinions", roadmapController.getOpinions)
+roadmapRouter.get("/", roadmapController.getRoadmap);
+roadmapRouter.post("/", roadmapController.saveRoadmap);
 
 export default roadmapRouter;

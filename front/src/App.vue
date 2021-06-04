@@ -31,12 +31,12 @@ export default defineComponent({
 }
 
 html,
-body{
-    height: 100vh;
+body {
+  height: 100vh;
 }
 
-body{
-   scroll-behavior: smooth;
+body {
+  scroll-behavior: smooth;
 }
 
 /* *,

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="roadmap-info">
-      <h2>This is an roadmap page of {{ $route.params.id }}</h2>
+      <h2>This is an roadmap page of {{ roadmapId }}</h2>
       <span>Step by step guide to becoming a modern frontend developer</span>
       <button @click="saveRoadmap">Save roadmap</button>
     </div>
@@ -26,14 +26,21 @@
     <div style="display: flex; flex-direction: column">
       <button @click="createNode()">New block</button>
     </div>
+    <!-- Modal for enter node data -->
     <DataModal v-show="nodeDataActive" @save="saveNode" @close="close(0)">
       <template v-slot:header>
         <span>Enter node info</span>
+        <ul>
+          <li v-for="opinion in opinions" :key="opinion.id">
+            <span>{{ opinion.name }}</span>
+          </li>
+        </ul>
       </template>
       <template v-slot:body>
         <input type="text" v-model="nodeTmp.name" />
       </template>
     </DataModal>
+    <!-- Modal for enter task data -->
     <DataModal v-show="taskDataActive" @save="saveTask" @close="close(1)">
       <template v-slot:header>
         <span>Enter task info</span>
@@ -46,39 +53,15 @@
   </div>
 </template>
 
+
 <script lang="ts">
 import { defineComponent } from "vue";
 import Node, { Opinion } from "../models/Node";
 import Task from "../models/Task";
 import RoadmapNode from "../components/RoadmapNode.vue";
 import DataModal from "../components/DataModal.vue";
+import { UsersApiService, RoadmapsApiService } from "@/services/api";
 
-/* const mainNode = new Node("main node", { opinion: Opinion.Recommended });
-const childNode = new Node("child node", {
-  parentId: mainNode.id,
-  tasks: [
-    new Task("How does the internet work?", Opinion.Recommended),
-    new Task("What is HTTP", Opinion.Recommended),
-    new Task("Browsers and how they work?", Opinion.Recommended),
-    new Task("DNS and how it works?", Opinion.Recommended),
-    new Task("What is Domain Name?", Opinion.Recommended),
-    new Task("What is hosting?", Opinion.Recommended),
-  ],
-});
-const VCSNode = new Node("Version Control Systems");
-const BUGNode = new Node("Basic usage of git", {
-  parentId: VCSNode.id,
-  opinion: Opinion.Recommended,
-});
-const RHSNode = new Node("Repo hosting services", {
-  parentId: VCSNode.id,
-  tasks: [
-    new Task("GitHub", Opinion.Recommended),
-    new Task("GitLab", Opinion.Extra),
-    new Task("Bitbucket", Opinion.Extra),
-  ],
-});
- */
 export default defineComponent({
   components: {
     RoadmapNode,
@@ -86,13 +69,22 @@ export default defineComponent({
   },
   data() {
     return {
-      roadmapId: 0 as number,
+      roadmapId: this.$route.params.id as string,
       roadmapData: [] as Array<Node>,
+      roadmapDataToUpdate: [] as Array<Node>,
       nodeDataActive: false as boolean,
       taskDataActive: false as boolean,
       nodeTmp: {} as Node,
       taskTmp: {} as Task,
+      opinions: [] as Opinion[]
     };
+  },
+  async created() {
+    const result = await (new RoadmapsApiService("/opinions")).fetch();
+    result.forEach((el: any) => {
+      this.opinions.push(new Opinion(el._id, el.name, el.color))
+    });
+    console.log(this.opinions);
   },
   methods: {
     getRoadmapBlocks(roadmapData: Node[]) {
@@ -116,8 +108,10 @@ export default defineComponent({
 
       return blocks;
     },
-    createNode(nodeId: number) {
-      this.nodeTmp = new Node("Noname", { parentId: nodeId ?? null });
+    createNode(parentId: number) {
+      this.nodeTmp = new Node(this.roadmapId, "", {
+        parentId: parentId ?? null,
+      });
       this.nodeDataActive = true;
     },
     createTask(node: Node) {
@@ -127,11 +121,12 @@ export default defineComponent({
       if (!this.nodeTmp.tasks) {
         this.nodeTmp.tasks = [];
       }
-      this.taskTmp = new Task("Noname", Opinion.Default);
+      this.taskTmp = new Task("");
     },
     saveNode() {
       this.nodeDataActive = false;
       this.roadmapData.push(this.nodeTmp);
+      this.roadmapDataToUpdate.push(this.nodeTmp);
     },
     saveTask() {
       if (this.nodeTmp.tasks) {
@@ -146,19 +141,11 @@ export default defineComponent({
         this.taskDataActive = false;
       }
     },
-    saveRoadmap() {
-      // TODO: server save
-      console.log(this.roadmapData);
+    async saveRoadmap() {
+      if(this.roadmapDataToUpdate.length > 0) {        
+        await new RoadmapsApiService().post(this.roadmapDataToUpdate);
+      }
     },
-  },
-  beforeCreate() {
-    // TODO: server load
-    console.log("beforeCreate()");
-
-    fetch("http://localhost:3000/api/roadmap/test")
-      .then((res) => res.json())
-      .then((data) => console.log(data))
-      .catch((err) => console.log(err));
   },
 });
 </script>

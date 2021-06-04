@@ -3,11 +3,10 @@ import { Opinion } from "./Node";
 export class Task {
     name: string;
     description: string;
-    opinion: Opinion;
+    opinion: Opinion | undefined;
 
-    constructor(name: string, opinion: Opinion) {
+    constructor(name: string) {
         this.name = name;
-        this.opinion = opinion;
         this.description = "This is tech that creates new blocks and replace them as new on html page";
     }
 }
