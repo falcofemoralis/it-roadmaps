@@ -5,7 +5,7 @@
         <RoadmapCard :roadmap="roadmap" />
       </li>
       <li>
-        <button @click="createRoadmap">Add roadmap</button>
+        <button class="add-btn" @click="createRoadmap">+</button>
       </li>
     </ul>
     <DataModal v-show="roadmapDataActive" @save="saveRoadmap" @close="close">
@@ -13,8 +13,14 @@
         <span>Enter roadmaps info</span>
       </template>
       <template v-slot:body>
-        <input type="text" v-model="roadmapTmp.name" />
-        <input type="text" v-model="roadmapTmp.description" />
+        <div>
+          <label>Name: </label>
+          <input type="text" v-model="roadmapTmp.name" />
+        </div>
+        <div>
+          <label>Description: </label>
+          <input type="text" v-model="roadmapTmp.description" />
+        </div>
       </template>
     </DataModal>
   </div>
@@ -73,6 +79,18 @@ export default defineComponent({
 
   li {
     margin: 8px;
+  }
+
+  .add-btn {
+    height: 60px;
+    width: 60px;
+    font-size: 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    background: #b4b4b4;
+    color: #fff;
+    filter: drop-shadow(0 0 4px #cecece);
   }
 }
 </style>

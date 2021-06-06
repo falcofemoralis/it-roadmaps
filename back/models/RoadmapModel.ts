@@ -20,7 +20,7 @@ export default class RoadmapModel {
             tasks: {
                 type: [{
                     name: { type: String, required: true },
-                    description: { type: String, required: true },
+                    description: { type: String },
                     opinionId: { type: String }
                 }]
             },

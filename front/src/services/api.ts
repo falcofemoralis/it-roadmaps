@@ -74,6 +74,7 @@ class ModelApiService extends BaseApiService {
             }
         } catch (err) {
             this.handleErrors("post", err);
+            return false;
         }
     }
 

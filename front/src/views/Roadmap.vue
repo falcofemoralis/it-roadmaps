@@ -43,7 +43,10 @@
         <span>Enter node info</span>
       </template>
       <template v-slot:body>
-        <input type="text" v-model="nodeTmp.name" />
+        <div>
+          <label>Name: </label>
+          <input type="text" v-model="nodeTmp.name" />
+        </div>
         <select v-model="nodeTmp.opinionId">
           <option
             v-for="(opinion, index) in $store.state.opinions"
@@ -62,8 +65,14 @@
         <span>Enter task info</span>
       </template>
       <template v-slot:body>
-        <input type="text" v-model="taskTmp.name" />
-        <input type="text" v-model="taskTmp.description" />
+        <div>
+          <label>Name: </label>
+          <input type="text" v-model="taskTmp.name" />
+        </div>
+        <div>
+          <label>Description: </label>
+          <input type="text" v-model="taskTmp.description" />
+        </div>
         <select v-model="taskTmp.opinionId">
           <option
             v-for="(opinion, index) in $store.state.opinions"
@@ -108,8 +117,6 @@ export default defineComponent({
     };
   },
   created() {
-    this.roadmap = this.$store.state.roadmap;
-
     this.$api.roadmaps.get("/opinions").then((opinionsJson: Array<Opinion>) => {
       if (opinionsJson) {
         this.$store.state.opinions = plainToClass(Opinion, opinionsJson);
@@ -117,11 +124,17 @@ export default defineComponent({
     });
 
     this.$api.roadmaps
-      .get(`/nodes/${this.roadmap._id}`)
-      .then((roadmapDataJson: Array<Node>) => {
-        if (roadmapDataJson) {
-          this.roadmapData = plainToClass(Node, roadmapDataJson);
-        }
+      .get(`/${this.$route.params.id}`)
+      .then((roadmapJson: Roadmap) => {
+        this.roadmap = plainToClass(Roadmap, roadmapJson);
+
+        this.$api.roadmaps
+          .get(`/nodes/${this.roadmap._id}`)
+          .then((roadmapDataJson: Array<Node>) => {
+            if (roadmapDataJson) {
+              this.roadmapData = plainToClass(Node, roadmapDataJson);
+            }
+          });
       });
   },
   methods: {
@@ -146,6 +159,8 @@ export default defineComponent({
       return blocks;
     },
     createNode(parentId: number) {
+      console.log(this.roadmap);
+
       this.nodeTmp = new Node(this.roadmap._id ?? "", "", {
         parentId: parentId ?? null,
       });

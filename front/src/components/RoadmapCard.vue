@@ -1,9 +1,6 @@
 <template>
   <div class="card">
-    <router-link
-      @click="$store.state.roadmap = roadmap"
-      :to="{ name: 'roadmap', params: { id: roadmap._id } }"
-    >
+    <router-link :to="{ name: 'roadmap', params: { id: roadmap._id } }">
       <img
         class="card__preview"
         src="../assets/card_preview.png"
