@@ -15,10 +15,10 @@ export default class RoadmapModel {
                 type: [{
                     name: { type: String, required: true },
                     description: { type: String, required: true },
-                    opinion: { type: Number }
+                    opinionId: { type: String }
                 }]
             },
-            opinion: { type: Number }
+            opinionId: { type: String }
         });
         this.Roadmap = mongoose.model("Roadmap", nodeScheme);
 
@@ -26,22 +26,37 @@ export default class RoadmapModel {
         this.Opinion = mongoose.model("opinion", opinionScheme);
     }
 
-    public addNodes(nodes: any) {
+    public addNodes(nodes: any, callback: Function) {
         this.Roadmap.insertMany(nodes)
-            .then(() => console.log("Сохранен объект"))
+            .then(() => callback())
             .catch((err: any) => console.log(err))
-            .finally(() => mongoose.disconnect());
     }
 
-    public getNodes() {
-
+    public getNodes(callback: Function) {
+        this.Roadmap.find()
+            .then((res: any) => callback(res))
+            .catch((err: any) => console.log(err))
     }
 
     public getOpinions(callback: Function) {
         this.Opinion.find()
             .then((res: any) => callback(res))
             .catch((err: any) => console.log(err))
-            .finally(() => mongoose.disconnect());
     }
 
+    public updateNodes(nodes: any, callback: Function) {
+        console.log(nodes);
+
+        for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+
+            this.Roadmap.updateOne({ id: node.id }, { tasks: node.tasks })
+                .then((res: any) => {
+                    if (nodes.length - 1 == i) {
+                        callback(res)
+                    }
+                })
+                .catch((err: any) => console.log(err))
+        }
+    }
 }

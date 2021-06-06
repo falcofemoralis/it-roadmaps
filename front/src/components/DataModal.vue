@@ -65,6 +65,8 @@ export default defineComponent({
   }
 
   .modal-body {
+    display: flex;
+    flex-direction: column;
     position: relative;
     padding: 20px 10px;
   }

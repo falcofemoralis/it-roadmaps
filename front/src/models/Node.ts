@@ -1,15 +1,9 @@
 import Task from "./Task";
 
-export class Opinion {
-    id: string;
+export interface Opinion {
+    _id: string;
     name: string;
     color: string;
-
-    constructor(id: string, name: string, color: string) {
-        this.id = id;
-        this.name = name;
-        this.color = color;
-    }
 }
 
 export class Node {
@@ -17,7 +11,7 @@ export class Node {
     id: number;
     roadmapId: string;
     parentId: number | undefined;
-    opinion: Opinion | undefined;
+    opinionId: string | undefined;
     tasks: Task[] | undefined;
 
     constructor(roadmapId: string, name: string, options?: any) {
@@ -26,7 +20,7 @@ export class Node {
         this.id = Date.now() + Math.floor(Math.random() * 1000);
 
         if (options) {
-            this.opinion = options.opinion;
+            this.opinionId = options.opinionId;
             this.tasks = options.tasks;
             this.parentId = options.parentId;
         }

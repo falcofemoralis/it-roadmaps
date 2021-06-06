@@ -17,17 +17,15 @@ class BaseApiService {
      * @param id - id of resource
      * @returns url
      */
-    getUrl(id?: string): string {
-        console.log("url: " + `${this.baseUrl}/${this.resource}/${id ?? ""}`);
-
-        return `${this.baseUrl}/${this.resource}/${id ?? ""}`;
+    protected getUrl(subResource: string, id?: number): string {
+        return `${this.baseUrl}/${this.resource}${subResource}/${id ?? ""}`;
     }
 
     /**
      * A function responsible for errors handling.
      * @param err - error
      */
-    handleErrors(err: Error): void {
+    protected handleErrors(err: Error): void {
         console.log({ message: "Errors is handled here", err });
     }
 }
@@ -40,12 +38,13 @@ class ReadOnlyApiService extends BaseApiService {
     /**
      * To fetch many objects
      * @param config - optional config
+     * @param path - path in url
      * @returns json data
      */
-    async fetch(config?: any) {
+    public async getMany<T>(path: string, config?: any) {
         try {
-            const response = await fetch(this.getUrl(), config ?? {});
-            return await response.json();
+            const response = await fetch(this.getUrl(path), config ?? {});
+            return await response.json() as Promise<T>;
         } catch (err) {
             this.handleErrors(err);
         }
@@ -54,12 +53,13 @@ class ReadOnlyApiService extends BaseApiService {
     /**
      * To get a singular object by id
      * @param id - id of resource
+     * @param path - path in url
      * @returns json data
      */
-    async get(id: string) {
+    public async getOne(path: string, id: number) {
         try {
             if (!id) throw Error("Id is not provided");
-            const response = await fetch(this.getUrl(id));
+            const response = await fetch(this.getUrl(path, id));
             return await response.json();
         } catch (err) {
             this.handleErrors(err);
@@ -75,12 +75,36 @@ class ModelApiService extends ReadOnlyApiService {
     /**
      * Creating a resource entity.
      * @param data - data to upload
+     * @param path - path in url
      * @returns 
      */
-    async post(data: any) {
+    public async post(path: string, data: any) {
         try {
-            const response = await fetch(this.getUrl(), {
+            const response = await fetch(this.getUrl(path), {
                 method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+        } catch (err) {
+            this.handleErrors(err);
+        }
+    }
+
+    /**
+     * Updating a resource entity.
+     * @param id - id of resource
+     * @param path - path in url
+     * @param data - data to upload
+     * @returns 
+     */
+    public async put(path: string, data: any = {}, id?: number) {
+        //if (!id) throw Error("Id is not provided");
+        try {
+            const response = await fetch(this.getUrl(path, id), {
+                method: "PUT",
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -94,33 +118,15 @@ class ModelApiService extends ReadOnlyApiService {
     }
 
     /**
-     * Updating a resource entity.
-     * @param id - id of resource
-     * @param data - data to upload
-     * @returns 
-     */
-    async put(id: string, data: any = {}) {
-        if (!id) throw Error("Id is not provided");
-        try {
-            const response = await fetch(this.getUrl(id), {
-                method: "PUT",
-                body: JSON.stringify(data)
-            });
-            return await response.json();
-        } catch (err) {
-            this.handleErrors(err);
-        }
-    }
-
-    /**
      * Deleting a resource entity.
      * @param id - id of resource
+     * @param path - path in url
      * @returns 
      */
-    async delete(id: string) {
+    public async delete(path: string, id: number) {
         if (!id) throw Error("Id is not provided");
         try {
-            await fetch(this.getUrl(id), {
+            await fetch(this.getUrl(path, id), {
                 method: "DELETE"
             });
             return true;
@@ -130,14 +136,24 @@ class ModelApiService extends ReadOnlyApiService {
     }
 }
 
-export class RoadmapsApiService extends ModelApiService {
-    constructor(resource?: string) {
-        super(`roadmaps${resource ?? ""}`);
+class RoadmapsApiService extends ModelApiService {
+    constructor() {
+        super("roadmaps");
     }
 }
 
-export class UsersApiService extends ReadOnlyApiService {
-    constructor(resource?: string) {
-        super(`users${resource ?? ""}`);
+class UsersApiService extends ReadOnlyApiService {
+    constructor() {
+        super("users");
     }
 }
+
+export interface IApi {
+    users: UsersApiService,
+    roadmaps: RoadmapsApiService,
+}
+
+export const api = {
+    users: new UsersApiService(),
+    roadmaps: new RoadmapsApiService(),
+} as IApi;

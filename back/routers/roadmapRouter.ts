@@ -6,6 +6,9 @@ const roadmapController: RoadmapController = new RoadmapController();
 
 roadmapRouter.get("/opinions", roadmapController.getOpinions)
 roadmapRouter.get("/", roadmapController.getRoadmap);
+
 roadmapRouter.post("/", roadmapController.saveRoadmap);
+
+roadmapRouter.put("/", roadmapController.updateRoadmap);
 
 export default roadmapRouter;

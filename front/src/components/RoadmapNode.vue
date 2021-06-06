@@ -16,9 +16,9 @@
             <span @click="showMsg('You know it!')">I know it</span>
           </div>
           <div
-            v-if="task.opinion"
+            v-if="task.opinionId"
             class="opinion"
-            :style="'background:' + task.opinion"
+            :style="'background:' + getOpinion(task.opinionId).color"
           >
             ✓
           </div>
@@ -27,9 +27,9 @@
     </ul>
     <button @click="createTask">New task</button>
     <span
-      v-if="node.opinion"
+      v-if="node.opinionId"
       class="opinion"
-      :style="'background:' + node.opinion"
+      :style="'background:' + getOpinion(node.opinionId).color"
       >✓
     </span>
   </div>
@@ -38,7 +38,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import Node from "../models/Node";
+import Node, { Opinion } from "../models/Node";
 
 export default defineComponent({
   name: "RoadmapNode",
@@ -50,7 +50,7 @@ export default defineComponent({
   },
   data() {
     return {
-      currentModal: -1,
+      currentModal: -1 as number,
     };
   },
   methods: {
@@ -59,6 +59,13 @@ export default defineComponent({
     },
     createTask() {
       this.$emit("addTask");
+    },
+    getOpinion(id: string): Opinion | undefined {
+      console.log(this.$store.state.opinions);
+
+      return this.$store.state.opinions.find(
+        (opinion: Opinion) => opinion._id === id
+      );
     },
   },
 });

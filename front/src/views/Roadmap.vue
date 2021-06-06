@@ -30,14 +30,19 @@
     <DataModal v-show="nodeDataActive" @save="saveNode" @close="close(0)">
       <template v-slot:header>
         <span>Enter node info</span>
-        <ul>
-          <li v-for="opinion in opinions" :key="opinion.id">
-            <span>{{ opinion.name }}</span>
-          </li>
-        </ul>
       </template>
       <template v-slot:body>
         <input type="text" v-model="nodeTmp.name" />
+        <select v-model="nodeTmp.opinionId">
+          <option
+            v-for="(opinion, index) in $store.state.opinions"
+            :key="index"
+            :value="opinion._id"
+            :style="'color: ' + opinion.color"
+          >
+            {{ opinion.name }}
+          </option>
+        </select>
       </template>
     </DataModal>
     <!-- Modal for enter task data -->
@@ -48,6 +53,16 @@
       <template v-slot:body>
         <input type="text" v-model="taskTmp.name" />
         <input type="text" v-model="taskTmp.description" />
+        <select v-model="taskTmp.opinionId">
+          <option
+            v-for="(opinion, index) in $store.state.opinions"
+            :key="index"
+            :value="opinion._id"
+            :style="'color: ' + opinion.color"
+          >
+            {{ opinion.name }}
+          </option>
+        </select>
       </template>
     </DataModal>
   </div>
@@ -60,7 +75,6 @@ import Node, { Opinion } from "../models/Node";
 import Task from "../models/Task";
 import RoadmapNode from "../components/RoadmapNode.vue";
 import DataModal from "../components/DataModal.vue";
-import { UsersApiService, RoadmapsApiService } from "@/services/api";
 
 export default defineComponent({
   components: {
@@ -71,20 +85,29 @@ export default defineComponent({
     return {
       roadmapId: this.$route.params.id as string,
       roadmapData: [] as Array<Node>,
+      roadmapDataToSend: [] as Array<Node>,
       roadmapDataToUpdate: [] as Array<Node>,
       nodeDataActive: false as boolean,
       taskDataActive: false as boolean,
       nodeTmp: {} as Node,
       taskTmp: {} as Task,
-      opinions: [] as Opinion[]
     };
   },
   async created() {
-    const result = await (new RoadmapsApiService("/opinions")).fetch();
-    result.forEach((el: any) => {
-      this.opinions.push(new Opinion(el._id, el.name, el.color))
-    });
-    console.log(this.opinions);
+    //TODO как-то переделать
+    const result = await this.$api.roadmaps.getMany<Array<Opinion>>(
+      "/opinions"
+    );
+    if (result) {
+      this.$store.state.opinions = result;
+      console.log("opinion downloaded");
+    }
+
+    const result2 = await this.$api.roadmaps.getMany<Array<Node>>("/");
+    if (result2) {
+      this.roadmapData = result2;
+      console.log("roadmap downloaded");
+    }
   },
   methods: {
     getRoadmapBlocks(roadmapData: Node[]) {
@@ -93,7 +116,6 @@ export default defineComponent({
       for (let i = 0; i < roadmapData.length; i++) {
         if (!roadmapData[i].parentId) {
           blocks.push([[roadmapData[i]]]);
-          // roadmapData.splice(i, 1);
         }
       }
 
@@ -121,17 +143,23 @@ export default defineComponent({
       if (!this.nodeTmp.tasks) {
         this.nodeTmp.tasks = [];
       }
-      this.taskTmp = new Task("");
+      this.taskTmp = new Task("", "");
     },
     saveNode() {
       this.nodeDataActive = false;
       this.roadmapData.push(this.nodeTmp);
-      this.roadmapDataToUpdate.push(this.nodeTmp);
+      this.roadmapDataToSend.push(this.nodeTmp);
     },
     saveTask() {
       if (this.nodeTmp.tasks) {
         this.nodeTmp.tasks.push(this.taskTmp);
       }
+
+      if (!this.isToUpdate(this.nodeTmp)) {
+        this.roadmapDataToUpdate.push(this.nodeTmp);
+      }
+
+      //update
       this.taskDataActive = false;
     },
     close(modal: number) {
@@ -141,9 +169,19 @@ export default defineComponent({
         this.taskDataActive = false;
       }
     },
+    isToUpdate(node: Node) {
+      const isOnUpdate = this.roadmapDataToUpdate.find(
+        (el: Node) => el.id === node.id
+      );
+      return isOnUpdate;
+    },
     async saveRoadmap() {
-      if(this.roadmapDataToUpdate.length > 0) {        
-        await new RoadmapsApiService().post(this.roadmapDataToUpdate);
+      if (this.roadmapDataToSend.length > 0) {
+        this.$api.roadmaps.post("/", this.roadmapDataToSend);
+      }
+
+      if (this.roadmapDataToUpdate.length > 0) {
+        this.$api.roadmaps.put("/", this.roadmapDataToUpdate);
       }
     },
   },
