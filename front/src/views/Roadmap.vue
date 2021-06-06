@@ -1,9 +1,9 @@
 <template>
   <div>
     <div class="roadmap-info">
-      <h2>This is an roadmap page of {{ roadmapId }}</h2>
+      <h2>This is an roadmap page of {{ roadmap.name }}</h2>
       <span>Step by step guide to becoming a modern frontend developer</span>
-      <button @click="saveRoadmap">Save roadmap</button>
+      <button class="save-btn" @click="saveRoadmap">Save roadmap</button>
     </div>
     <ul class="roadmap">
       <li
@@ -15,17 +15,28 @@
           <li v-for="(nodes, index) in block" :key="index">
             <ul>
               <li v-for="node in nodes" :key="node.id">
-                <RoadmapNode :node="node" @addTask="createTask(node)" />
+                <RoadmapNode :node="node">
+                  <template v-slot:addTask>
+                    <button class="add-btn" @click="createTask(node)">
+                      New task
+                    </button>
+                  </template>
+                </RoadmapNode>
               </li>
             </ul>
           </li>
-          <button @click="createNode(block[0][0].id)">New node</button>
+          <li class="btn-wrapper">
+            <button class="add-btn" @click="createNode(block[0][0].id)">
+              New node
+            </button>
+          </li>
         </ul>
       </li>
+      <li class="btn-wrapper">
+        <button class="add-btn" @click="createNode()">New block</button>
+      </li>
     </ul>
-    <div style="display: flex; flex-direction: column">
-      <button @click="createNode()">New block</button>
-    </div>
+
     <!-- Modal for enter node data -->
     <DataModal v-show="nodeDataActive" @save="saveNode" @close="close(0)">
       <template v-slot:header>
@@ -71,10 +82,13 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import Node, { Opinion } from "../models/Node";
-import Task from "../models/Task";
-import RoadmapNode from "../components/RoadmapNode.vue";
-import DataModal from "../components/DataModal.vue";
+import { plainToClass } from "class-transformer";
+import Node from "@/models/Node";
+import Task from "@/models/Task";
+import Opinion from "@/models/Opinion";
+import RoadmapNode from "@/components/RoadmapNode.vue";
+import DataModal from "@/components/DataModal.vue";
+import Roadmap from "@/models/Roadmap";
 
 export default defineComponent({
   components: {
@@ -83,7 +97,7 @@ export default defineComponent({
   },
   data() {
     return {
-      roadmapId: this.$route.params.id as string,
+      roadmap: {} as Roadmap,
       roadmapData: [] as Array<Node>,
       roadmapDataToSend: [] as Array<Node>,
       roadmapDataToUpdate: [] as Array<Node>,
@@ -93,21 +107,22 @@ export default defineComponent({
       taskTmp: {} as Task,
     };
   },
-  async created() {
-    //TODO как-то переделать
-    const result = await this.$api.roadmaps.getMany<Array<Opinion>>(
-      "/opinions"
-    );
-    if (result) {
-      this.$store.state.opinions = result;
-      console.log("opinion downloaded");
-    }
+  created() {
+    this.roadmap = this.$store.state.roadmap;
 
-    const result2 = await this.$api.roadmaps.getMany<Array<Node>>("/");
-    if (result2) {
-      this.roadmapData = result2;
-      console.log("roadmap downloaded");
-    }
+    this.$api.roadmaps.get("/opinions").then((opinionsJson: Array<Opinion>) => {
+      if (opinionsJson) {
+        this.$store.state.opinions = plainToClass(Opinion, opinionsJson);
+      }
+    });
+
+    this.$api.roadmaps
+      .get(`/nodes/${this.roadmap._id}`)
+      .then((roadmapDataJson: Array<Node>) => {
+        if (roadmapDataJson) {
+          this.roadmapData = plainToClass(Node, roadmapDataJson);
+        }
+      });
   },
   methods: {
     getRoadmapBlocks(roadmapData: Node[]) {
@@ -131,7 +146,7 @@ export default defineComponent({
       return blocks;
     },
     createNode(parentId: number) {
-      this.nodeTmp = new Node(this.roadmapId, "", {
+      this.nodeTmp = new Node(this.roadmap._id ?? "", "", {
         parentId: parentId ?? null,
       });
       this.nodeDataActive = true;
@@ -159,7 +174,6 @@ export default defineComponent({
         this.roadmapDataToUpdate.push(this.nodeTmp);
       }
 
-      //update
       this.taskDataActive = false;
     },
     close(modal: number) {
@@ -177,11 +191,11 @@ export default defineComponent({
     },
     async saveRoadmap() {
       if (this.roadmapDataToSend.length > 0) {
-        this.$api.roadmaps.post("/", this.roadmapDataToSend);
+        this.$api.roadmaps.post("/nodes", this.roadmapDataToSend);
       }
 
       if (this.roadmapDataToUpdate.length > 0) {
-        this.$api.roadmaps.put("/", this.roadmapDataToUpdate);
+        this.$api.roadmaps.put("/nodes", this.roadmapDataToUpdate);
       }
     },
   },
@@ -214,6 +228,7 @@ export default defineComponent({
   position: relative;
   display: flex;
   flex-direction: column;
+  align-items: center;
   background-color: #ebebeb;
 
   &:before {
@@ -224,6 +239,7 @@ export default defineComponent({
     width: 3px;
     background-color: rgb(102, 102, 102);
     left: 50%;
+    z-index: 0;
   }
 
   .roadmap-block {
@@ -241,5 +257,32 @@ export default defineComponent({
 
 .wrapper {
   max-width: none !important;
+}
+
+%btn {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px;
+  height: 35px;
+  width: 125px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin: 10px;
+}
+
+.save-btn {
+  @extend %btn;
+  background-color: rgb(42, 192, 92);
+}
+
+.add-btn {
+  @extend %btn;
+  background-color: rgb(30, 153, 230);
+}
+
+.btn-wrapper {
+  z-index: 1;
 }
 </style>

@@ -1,6 +1,9 @@
 <template>
   <div class="card">
-    <router-link :to="{ name: 'roadmap', params: { id: roadmapName } }">
+    <router-link
+      @click="$store.state.roadmap = roadmap"
+      :to="{ name: 'roadmap', params: { id: roadmap._id } }"
+    >
       <img
         class="card__preview"
         src="../assets/card_preview.png"
@@ -8,8 +11,8 @@
       />
     </router-link>
     <div class="card__about">
-      <h3>{{ roadmapName }}</h3>
-      <span>TestTestTest</span>
+      <h3>{{ roadmap.name }}</h3>
+      <span>{{ roadmap.description }}</span>
       <a href="">Open roadmap</a>
     </div>
   </div>
@@ -18,12 +21,13 @@
 
 <script>
 import { defineComponent } from "vue";
+import Roadmap from "@/models/Roadmap";
 
 export default defineComponent({
   name: "RoadmapCard",
   props: {
-    roadmapName: {
-      type: String,
+    roadmap: {
+      type: Roadmap,
       required: true,
     },
   },

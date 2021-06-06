@@ -1,18 +1,12 @@
 import Task from "./Task";
 
-export interface Opinion {
-    _id: string;
-    name: string;
-    color: string;
-}
-
-export class Node {
+export default class Node {
     name: string;
     id: number;
     roadmapId: string;
     parentId: number | undefined;
     opinionId: string | undefined;
-    tasks: Task[] | undefined;
+    tasks: Array<Task> | undefined;
 
     constructor(roadmapId: string, name: string, options?: any) {
         this.roadmapId = roadmapId;
@@ -26,5 +20,3 @@ export class Node {
         }
     }
 }
-
-export default Node;

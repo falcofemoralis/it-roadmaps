@@ -12,7 +12,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use("/api/roadmaps", roadmapRouter)
 app.use("/api/users", userRouter)
-app.get("/", (req, res) => { res.status(200).send("I am groot") })
 
 mongoose.connect("mongodb://localhost:27017/it-roadmaps", { useUnifiedTopology: true, useNewUrlParser: true }, (err: any) => {
     if (err) {

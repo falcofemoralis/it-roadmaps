@@ -12,7 +12,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/roadmap/:id',
     name: 'roadmap',
-    component: Roadmap
+    component: Roadmap,
   },
   {
     path: '/progress',

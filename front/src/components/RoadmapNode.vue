@@ -25,7 +25,7 @@
         </div>
       </li>
     </ul>
-    <button @click="createTask">New task</button>
+    <slot name="addTask" />
     <span
       v-if="node.opinionId"
       class="opinion"
@@ -38,7 +38,8 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import Node, { Opinion } from "../models/Node";
+import Node from "@/models/Node";
+import Opinion from "@/models/Opinion";
 
 export default defineComponent({
   name: "RoadmapNode",
@@ -57,12 +58,7 @@ export default defineComponent({
     showMsg(msg: string) {
       alert(msg);
     },
-    createTask() {
-      this.$emit("addTask");
-    },
     getOpinion(id: string): Opinion | undefined {
-      console.log(this.$store.state.opinions);
-
       return this.$store.state.opinions.find(
         (opinion: Opinion) => opinion._id === id
       );
@@ -82,6 +78,9 @@ export default defineComponent({
   border-radius: 8px;
   background: #ffffff;
   box-shadow: rgb(0 0 0 / 12%) 0px 5px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   .node-name {
     font-weight: 600;
@@ -107,6 +106,7 @@ export default defineComponent({
       align-items: center;
       flex-direction: column;
       min-height: 150px;
+      min-width: 225px;
       max-width: 250px;
       font-size: 14px;
       border-radius: 5px;

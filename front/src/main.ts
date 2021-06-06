@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router'
 import { store } from './store'
 import { api } from "@/services/api";
-
+import 'reflect-metadata';
 
 const app = createApp(App)
 app.config.globalProperties.$api = api;

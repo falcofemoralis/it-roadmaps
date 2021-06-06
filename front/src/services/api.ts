@@ -25,51 +25,29 @@ class BaseApiService {
      * A function responsible for errors handling.
      * @param err - error
      */
-    protected handleErrors(err: Error): void {
-        console.log({ message: "Errors is handled here", err });
+    protected handleErrors(location: string, err: Error): void {
+        console.log({ message: "Errors is handled here: " + location, err });
     }
 }
 
-class ReadOnlyApiService extends BaseApiService {
+class ModelApiService extends BaseApiService {
     constructor(resource: string) {
         super(resource);
     }
 
     /**
-     * To fetch many objects
-     * @param config - optional config
+     * To fetch objects
+     * @param id - optional id
      * @param path - path in url
      * @returns json data
      */
-    public async getMany<T>(path: string, config?: any) {
+    public async get(path: string, id?: number) {
         try {
-            const response = await fetch(this.getUrl(path), config ?? {});
-            return await response.json() as Promise<T>;
-        } catch (err) {
-            this.handleErrors(err);
-        }
-    }
-
-    /**
-     * To get a singular object by id
-     * @param id - id of resource
-     * @param path - path in url
-     * @returns json data
-     */
-    public async getOne(path: string, id: number) {
-        try {
-            if (!id) throw Error("Id is not provided");
             const response = await fetch(this.getUrl(path, id));
             return await response.json();
         } catch (err) {
-            this.handleErrors(err);
+            this.handleErrors("get", err);
         }
-    }
-}
-
-class ModelApiService extends ReadOnlyApiService {
-    constructor(resource: string) {
-        super(resource);
     }
 
     /**
@@ -88,8 +66,14 @@ class ModelApiService extends ReadOnlyApiService {
                 },
                 body: JSON.stringify(data)
             });
+
+            try {
+                return await response.json();
+            } catch (err) {
+                return true;
+            }
         } catch (err) {
-            this.handleErrors(err);
+            this.handleErrors("post", err);
         }
     }
 
@@ -101,9 +85,8 @@ class ModelApiService extends ReadOnlyApiService {
      * @returns 
      */
     public async put(path: string, data: any = {}, id?: number) {
-        //if (!id) throw Error("Id is not provided");
         try {
-            const response = await fetch(this.getUrl(path, id), {
+            await fetch(this.getUrl(path, id), {
                 method: "PUT",
                 headers: {
                     'Accept': 'application/json',
@@ -111,9 +94,9 @@ class ModelApiService extends ReadOnlyApiService {
                 },
                 body: JSON.stringify(data)
             });
-            return await response.json();
+            return true;
         } catch (err) {
-            this.handleErrors(err);
+            this.handleErrors("put", err);
         }
     }
 
@@ -123,15 +106,14 @@ class ModelApiService extends ReadOnlyApiService {
      * @param path - path in url
      * @returns 
      */
-    public async delete(path: string, id: number) {
-        if (!id) throw Error("Id is not provided");
+    public async delete(path: string, id?: number) {
         try {
             await fetch(this.getUrl(path, id), {
                 method: "DELETE"
             });
             return true;
         } catch (err) {
-            this.handleErrors(err);
+            this.handleErrors("delete", err);
         }
     }
 }
@@ -142,7 +124,7 @@ class RoadmapsApiService extends ModelApiService {
     }
 }
 
-class UsersApiService extends ReadOnlyApiService {
+class UsersApiService extends ModelApiService {
     constructor() {
         super("users");
     }

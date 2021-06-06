@@ -1,7 +1,7 @@
-export default class Task {
+export default class Roadmap {
+    _id: string | undefined;
     name: string;
     description: string;
-    opinionId: string | undefined;
 
     constructor(name: string, description: string) {
         this.name = name;
