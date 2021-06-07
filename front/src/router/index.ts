@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import Home from '../views/Home.vue'
-import Roadmap from '../views/Roadmap.vue'
-import Progress from '../views/Progress.vue'
+import Home from '@/views/Home.vue'
+import Roadmap from '@/views/Roadmap.vue'
+import Progress from '@/views/Progress.vue'
+import SignUp from "@/views/SignUp.vue";
+import Login from "@/views/Login.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -18,7 +20,17 @@ const routes: Array<RouteRecordRaw> = [
     path: '/progress',
     name: 'progress',
     component: Progress
-  }
+  },
+  {
+    path: "/sign-up",
+    name: "sign-up",
+    component: SignUp
+  },
+  {
+    path: "/login",
+    name: "login",
+    component: Login
+  },
 ]
 
 const router = createRouter({

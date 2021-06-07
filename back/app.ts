@@ -13,7 +13,7 @@ app.use(express.json());
 app.use("/api/roadmaps", roadmapRouter)
 app.use("/api/users", userRouter)
 
-mongoose.connect("mongodb://localhost:27017/it-roadmaps", { useUnifiedTopology: true, useNewUrlParser: true }, (err: any) => {
+mongoose.connect("mongodb://localhost:27017/testdb", { useUnifiedTopology: true, useNewUrlParser: true }, (err: any) => {
     if (err) {
         return console.log(err);
     }

@@ -9,6 +9,10 @@
       <img src="../assets/userlogo.png" />
       <span>Username</span>
     </div>
+    <div>
+      <button>Sign up</button>
+      <button>Login</button>
+    </div>
   </div>
 </template>
 

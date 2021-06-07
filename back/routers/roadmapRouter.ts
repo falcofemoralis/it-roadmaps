@@ -9,9 +9,9 @@ roadmapRouter.get("/all", roadmapController.getRoadmaps)
 roadmapRouter.get("/nodes/:id", roadmapController.getRoadmapData)
 roadmapRouter.get("/:id", roadmapController.getRoadmap)
 
-roadmapRouter.post("/nodes", roadmapController.saveRoadmap)
+roadmapRouter.post("/nodes", roadmapController.saveRoadmapData)
 roadmapRouter.post("/", roadmapController.newRoadmap)
 
-roadmapRouter.put("/nodes", roadmapController.updateRoadmap)
+roadmapRouter.put("/nodes", roadmapController.updateRoadmapData)
 
 export default roadmapRouter

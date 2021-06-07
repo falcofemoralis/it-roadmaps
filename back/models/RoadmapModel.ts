@@ -1,3 +1,4 @@
+import e from 'express';
 import mongoose, { Schema } from 'mongoose';
 
 export default class RoadmapModel {
@@ -36,53 +37,64 @@ export default class RoadmapModel {
         this.OpinionModel = mongoose.model("Opinion", opinionScheme);
     }
 
-    public getRoadmaps(callback: Function) {
-        this.RoadmapModel.find()
-            .then((res: any) => callback(res))
-            .catch((err: any) => console.log(err))
-    }
-
-    public addNodes(nodes: any, callback: Function) {
-        this.NodeModel.insertMany(nodes)
-            .then(() => callback())
-            .catch((err: any) => console.log(err))
-    }
-
-    public getNodes(roadmapId: string, callback: Function) {
-        this.NodeModel.find({ roadmapId: roadmapId })
-            .then((res: any) => callback(res))
-            .catch((err: any) => console.log(err))
-    }
-
-    public getOpinions(callback: Function) {
-        this.OpinionModel.find()
-            .then((res: any) => callback(res))
-            .catch((err: any) => console.log(err))
-    }
-
-    public updateNodes(nodes: any, callback: Function) {
-        for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i];
-
-            this.NodeModel.updateOne({ id: node.id }, { tasks: node.tasks })
-                .then((res: any) => {
-                    if (nodes.length - 1 == i) {
-                        callback(res)
-                    }
-                })
-                .catch((err: any) => console.log(err))
+    public async getRoadmaps() {
+        try {
+            return await this.RoadmapModel.find();
+        } catch (err) {
+            throw err;
         }
     }
 
-    public addRoadmap(roadmap: any, callback: Function) {
-        this.RoadmapModel.create(roadmap)
-            .then((res: any) => callback(res._id))
-            .catch((err: any) => console.log(err))
+    public async addNodes(nodes: any) {
+        try {
+            await this.NodeModel.insertMany(nodes);
+        } catch (err) {
+            throw err;
+        }
     }
 
-    public getRoadmap(roadmapId: string, callback: Function) {
-        this.RoadmapModel.find({ _id: roadmapId })
-            .then((res: any) => callback(res))
-            .catch((err: any) => console.log(err))
+    public async getNodes(roadmapId: string) {
+        try {
+            return await this.NodeModel.find({ roadmapId: roadmapId });
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    public async getOpinions() {
+        try {
+            return await this.OpinionModel.find()
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    public async updateNodes(nodes: any) {
+        for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+
+            try {
+                await this.NodeModel.updateOne({ id: node.id }, { tasks: node.tasks });
+            } catch (err) {
+                throw err;
+            }
+        }
+    }
+
+    public async addRoadmap(roadmap: any) {
+        try {
+            const res = await this.RoadmapModel.create(roadmap);
+            return res._id;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    public async getRoadmap(roadmapId: string) {
+        try {
+            return this.RoadmapModel.find({ _id: roadmapId });
+        } catch (err) {
+            throw err;
+        }
     }
 }
