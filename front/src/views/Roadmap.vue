@@ -4,6 +4,7 @@
       <h2>This is an roadmap page of {{ roadmap.name }}</h2>
       <span>Step by step guide to becoming a modern frontend developer</span>
       <button class="save-btn" @click="saveRoadmap">Save roadmap</button>
+      <span v-if="msg">{{ msg }}</span>
     </div>
     <ul class="roadmap">
       <li
@@ -113,21 +114,28 @@ export default defineComponent({
       taskDataActive: false as boolean,
       nodeTmp: {} as Node,
       taskTmp: {} as Task,
+      msg: "" as string,
     };
   },
-  async created() {
+  created() {
     // Download opinions
-    this.$store.state.opinions = await RoadmapsService.getOpinions();
+    RoadmapsService.getOpinions()
+      .then((opinions) => {
+        this.$store.state.opinions = opinions;
 
-    // Download roadmap
-    this.roadmap = await RoadmapsService.getRoadmap(
-      this.$route.params.id as string
-    );
+        // Download roadmap
+        RoadmapsService.getRoadmap(this.$route.params.id as string)
+          .then((roadmap) => {
+            this.roadmap = roadmap;
 
-    // Download roadmap data (nodes)
-    this.roadmapData = await RoadmapsService.getRoadmapData(
-      this.roadmap._id as string
-    );
+            // Download roadmap data (nodes)
+            RoadmapsService.getRoadmapData(this.roadmap.id as string)
+              .then((roadmapData) => (this.roadmapData = roadmapData))
+              .catch((err: any) => (this.msg = err));
+          })
+          .catch((err: any) => (this.msg = err));
+      })
+      .catch((err: any) => (this.msg = err));
   },
   methods: {
     getRoadmapBlocks(roadmapData: Node[]) {
@@ -153,7 +161,7 @@ export default defineComponent({
     createNode(parentId: number) {
       console.log(this.roadmap);
 
-      this.nodeTmp = new Node(this.roadmap._id ?? "", "", {
+      this.nodeTmp = new Node(this.roadmap.id ?? "", "", {
         parentId: parentId ?? null,
       });
       this.nodeDataActive = true;

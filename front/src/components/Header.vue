@@ -3,13 +3,16 @@
     <div class="links">
       <img class="logo" src="../assets/logo.png" />
       <router-link to="/">Roadmaps</router-link> |
-      <router-link to="/progress">My progress</router-link>
+      <router-link v-if="isLoggedIn" to="/progress">My progress</router-link>
     </div>
-    <div v-if="$store.getters.getToken" class="user__panel">
+    <div v-if="isLoggedIn" class="userPanel" @click="changeState">
       <img src="../assets/userlogo.png" />
       <span>Username</span>
+      <div class="userMenu" v-show="isUsermenu">
+        <button @click="logOut">Log out</button>
+      </div>
     </div>
-    <div v-if="!$store.getters.getToken">
+    <div v-if="!isLoggedIn">
       <router-link to="/registration">Sign up</router-link> |
       <router-link to="/login">Login</router-link>
     </div>
@@ -22,6 +25,26 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "Header",
+  data() {
+    return {
+      isUsermenu: false as boolean,
+      isLoggedIn: false as boolean,
+    };
+  },
+  created() {
+    if (this.$store.getters.getToken) {
+      this.isLoggedIn = true;
+    }
+  },
+  methods: {
+    changeState() {
+      this.isUsermenu = !this.isUsermenu;
+    },
+    logOut() {
+      this.$store.dispatch("logout");
+      this.$router.push("/");
+    },
+  },
 });
 </script>
 
@@ -38,8 +61,10 @@ $header-height: 50px;
   margin: 0 auto;
 }
 
-.user__panel {
+.userPanel {
+  position: relative;
   display: flex;
+  cursor: pointer;
 
   img {
     height: $header-height;
@@ -70,6 +95,12 @@ $header-height: 50px;
       color: #42b983;
     }
   }
+}
+
+.userMenu {
+  position: absolute;
+  top: 50px;
+  background: rgb(179, 179, 179);
 }
 
 .logo {

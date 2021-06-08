@@ -14,7 +14,8 @@ class RoadmapsApiService extends ModelApiService {
     }
 
     public async getRoadmap(id: string) {
-        return plainToClass(Roadmap, await this.get(`/${id}`))[0];
+        const response = await this.get(`/${id}`);
+        return new Roadmap(response._id, response.name, response.description);
     }
 
     public async getRoadmapData(id: string) {

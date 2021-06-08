@@ -54,12 +54,12 @@ export default defineComponent({
       this.roadmapDataActive = false;
     },
     createRoadmap() {
-      this.roadmapTmp = new Roadmap("", "");
+      this.roadmapTmp = new Roadmap("", "", "");
       this.roadmapDataActive = true;
     },
     async saveRoadmap() {
       const id = await RoadmapsService.saveRoadmap(this.roadmapTmp);
-      this.roadmapTmp._id = id;
+      this.roadmapTmp.id = id;
       this.roadmaps.push(this.roadmapTmp);
       this.roadmapDataActive = false;
     },
