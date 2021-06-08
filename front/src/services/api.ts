@@ -1,6 +1,7 @@
 class BaseApiService {
     baseUrl: string;
     resource: string;
+    headers: Array<string>;
 
     /**
      * Base constructor
@@ -10,6 +11,7 @@ class BaseApiService {
         this.baseUrl = "http://localhost:3000/api";
         if (!resource) throw new Error("Resource is not provided");
         this.resource = resource;
+        this.headers = [];
     }
 
     /**
@@ -21,16 +23,12 @@ class BaseApiService {
         return `${this.baseUrl}/${this.resource}${subResource}/${id ?? ""}`;
     }
 
-    /**
-     * A function responsible for errors handling.
-     * @param err - error
-     */
-    protected handleErrors(location: string, err: Error): void {
-        console.log({ message: "Errors is handled here: " + location, err });
-    }
+    /*     public setHeaders(headers: any) {
+    
+        } */
 }
 
-class ModelApiService extends BaseApiService {
+export default class ModelApiService extends BaseApiService {
     constructor(resource: string) {
         super(resource);
     }
@@ -42,12 +40,8 @@ class ModelApiService extends BaseApiService {
      * @returns json data
      */
     public async get(path: string, id?: number) {
-        try {
-            const response = await fetch(this.getUrl(path, id));
-            return await response.json();
-        } catch (err) {
-            this.handleErrors("get", err);
-        }
+        const response = await fetch(this.getUrl(path, id));
+        return await response.json();
     }
 
     /**
@@ -57,25 +51,14 @@ class ModelApiService extends BaseApiService {
      * @returns 
      */
     public async post(path: string, data: any) {
-        try {
-            const response = await fetch(this.getUrl(path), {
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            try {
-                return await response.json();
-            } catch (err) {
-                return true;
-            }
-        } catch (err) {
-            this.handleErrors("post", err);
-            return false;
-        }
+        return await fetch(this.getUrl(path), {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
     }
 
     /**
@@ -86,19 +69,14 @@ class ModelApiService extends BaseApiService {
      * @returns 
      */
     public async put(path: string, data: any = {}, id?: number) {
-        try {
-            await fetch(this.getUrl(path, id), {
-                method: "PUT",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-            return true;
-        } catch (err) {
-            this.handleErrors("put", err);
-        }
+        return await fetch(this.getUrl(path, id), {
+            method: "PUT",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
     }
 
     /**
@@ -108,35 +86,8 @@ class ModelApiService extends BaseApiService {
      * @returns 
      */
     public async delete(path: string, id?: number) {
-        try {
-            await fetch(this.getUrl(path, id), {
-                method: "DELETE"
-            });
-            return true;
-        } catch (err) {
-            this.handleErrors("delete", err);
-        }
+        return await fetch(this.getUrl(path, id), {
+            method: "DELETE"
+        });
     }
 }
-
-class RoadmapsApiService extends ModelApiService {
-    constructor() {
-        super("roadmaps");
-    }
-}
-
-class UsersApiService extends ModelApiService {
-    constructor() {
-        super("users");
-    }
-}
-
-export interface IApi {
-    users: UsersApiService,
-    roadmaps: RoadmapsApiService,
-}
-
-export const api = {
-    users: new UsersApiService(),
-    roadmaps: new RoadmapsApiService(),
-} as IApi;

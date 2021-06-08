@@ -22,8 +22,8 @@ const routes: Array<RouteRecordRaw> = [
     component: Progress
   },
   {
-    path: "/sign-up",
-    name: "sign-up",
+    path: "/registration",
+    name: "registration",
     component: SignUp
   },
   {

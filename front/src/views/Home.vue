@@ -32,6 +32,7 @@ import { plainToClass } from "class-transformer";
 import RoadmapCard from "@/components/RoadmapCard.vue";
 import DataModal from "@/components/DataModal.vue";
 import Roadmap from "@/models/Roadmap";
+import RoadmapsService from "@/services/RoadmapService";
 
 export default defineComponent({
   components: {
@@ -45,12 +46,8 @@ export default defineComponent({
       roadmapDataActive: false as boolean,
     };
   },
-  created() {
-    this.$api.roadmaps.get("/all").then((roadmapsJson) => {
-      if (roadmapsJson) {
-        this.roadmaps = plainToClass(Roadmap, roadmapsJson);
-      }
-    });
+  async created() {
+    this.roadmaps = await RoadmapsService.getRoadmaps();
   },
   methods: {
     close() {
@@ -60,12 +57,11 @@ export default defineComponent({
       this.roadmapTmp = new Roadmap("", "");
       this.roadmapDataActive = true;
     },
-    saveRoadmap() {
-      this.$api.roadmaps.post("/", this.roadmapTmp).then((result: any) => {
-        this.roadmapTmp._id = result.id;
-        this.roadmaps.push(this.roadmapTmp);
-        this.roadmapDataActive = false;
-      });
+    async saveRoadmap() {
+      const id = await RoadmapsService.saveRoadmap(this.roadmapTmp);
+      this.roadmapTmp._id = id;
+      this.roadmaps.push(this.roadmapTmp);
+      this.roadmapDataActive = false;
     },
   },
 });

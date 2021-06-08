@@ -5,13 +5,13 @@
       <router-link to="/">Roadmaps</router-link> |
       <router-link to="/progress">My progress</router-link>
     </div>
-    <div class="user__panel">
+    <div v-if="$store.getters.getToken" class="user__panel">
       <img src="../assets/userlogo.png" />
       <span>Username</span>
     </div>
-    <div>
-      <button>Sign up</button>
-      <button>Login</button>
+    <div v-if="!$store.getters.getToken">
+      <router-link to="/registration">Sign up</router-link> |
+      <router-link to="/login">Login</router-link>
     </div>
   </div>
 </template>

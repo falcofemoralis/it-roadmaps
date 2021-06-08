@@ -38,63 +38,35 @@ export default class RoadmapModel {
     }
 
     public async getRoadmaps() {
-        try {
-            return await this.RoadmapModel.find();
-        } catch (err) {
-            throw err;
-        }
+        return await this.RoadmapModel.find();
     }
 
     public async addNodes(nodes: any) {
-        try {
-            await this.NodeModel.insertMany(nodes);
-        } catch (err) {
-            throw err;
-        }
+        await this.NodeModel.insertMany(nodes);
     }
 
     public async getNodes(roadmapId: string) {
-        try {
-            return await this.NodeModel.find({ roadmapId: roadmapId });
-        } catch (err) {
-            throw err;
-        }
+        return await this.NodeModel.find({ roadmapId: roadmapId });
     }
 
     public async getOpinions() {
-        try {
-            return await this.OpinionModel.find()
-        } catch (err) {
-            throw err;
-        }
+        return await this.OpinionModel.find()
     }
 
     public async updateNodes(nodes: any) {
         for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i];
 
-            try {
-                await this.NodeModel.updateOne({ id: node.id }, { tasks: node.tasks });
-            } catch (err) {
-                throw err;
-            }
+            await this.NodeModel.updateOne({ id: node.id }, { tasks: node.tasks });
         }
     }
 
     public async addRoadmap(roadmap: any) {
-        try {
-            const res = await this.RoadmapModel.create(roadmap);
-            return res._id;
-        } catch (err) {
-            throw err;
-        }
+        const res = await this.RoadmapModel.create(roadmap);
+        return res._id;
     }
 
     public async getRoadmap(roadmapId: string) {
-        try {
-            return this.RoadmapModel.find({ _id: roadmapId });
-        } catch (err) {
-            throw err;
-        }
+        return this.RoadmapModel.find({ _id: roadmapId });
     }
 }

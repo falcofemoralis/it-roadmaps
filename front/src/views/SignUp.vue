@@ -24,19 +24,18 @@ export default defineComponent({
     };
   },
   methods: {
-    async signUp() {
-      try {
-        const credentials = {
-          username: this.username,
-          password: this.password,
-          rePassword: this.rePassword,
-        };
-        const response = await AuthService.signUp(credentials);
-        this.msg = response.msg;
-        this.$router.push("/");
-      } catch (error) {
-        this.msg = error.response.data.msg;
-      }
+    signUp() {
+      const credentials = {
+        username: this.username,
+        password: this.password,
+        rePassword: this.rePassword,
+      };
+      AuthService.register(credentials)
+        .then((res) => {
+          this.$store.dispatch("login", { token: res.token });
+          this.$router.push("/");
+        })
+        .catch((err) => (this.msg = err));
     },
   },
 });

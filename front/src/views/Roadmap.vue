@@ -91,13 +91,12 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { plainToClass } from "class-transformer";
 import Node from "@/models/Node";
 import Task from "@/models/Task";
-import Opinion from "@/models/Opinion";
 import RoadmapNode from "@/components/RoadmapNode.vue";
 import DataModal from "@/components/DataModal.vue";
 import Roadmap from "@/models/Roadmap";
+import RoadmapsService from "@/services/RoadmapService";
 
 export default defineComponent({
   components: {
@@ -116,26 +115,19 @@ export default defineComponent({
       taskTmp: {} as Task,
     };
   },
-  created() {
-    this.$api.roadmaps.get("/opinions").then((opinionsJson: Array<Opinion>) => {
-      if (opinionsJson) {
-        this.$store.state.opinions = plainToClass(Opinion, opinionsJson);
-      }
-    });
+  async created() {
+    // Download opinions
+    this.$store.state.opinions = await RoadmapsService.getOpinions();
 
-    this.$api.roadmaps
-      .get(`/${this.$route.params.id}`)
-      .then((roadmapJson: Roadmap) => {
-        this.roadmap = plainToClass(Roadmap, roadmapJson);
+    // Download roadmap
+    this.roadmap = await RoadmapsService.getRoadmap(
+      this.$route.params.id as string
+    );
 
-        this.$api.roadmaps
-          .get(`/nodes/${this.roadmap._id}`)
-          .then((roadmapDataJson: Array<Node>) => {
-            if (roadmapDataJson) {
-              this.roadmapData = plainToClass(Node, roadmapDataJson);
-            }
-          });
-      });
+    // Download roadmap data (nodes)
+    this.roadmapData = await RoadmapsService.getRoadmapData(
+      this.roadmap._id as string
+    );
   },
   methods: {
     getRoadmapBlocks(roadmapData: Node[]) {
@@ -206,11 +198,11 @@ export default defineComponent({
     },
     async saveRoadmap() {
       if (this.roadmapDataToSend.length > 0) {
-        this.$api.roadmaps.post("/nodes", this.roadmapDataToSend);
+        RoadmapsService.saveRoadmapData(this.roadmapDataToSend);
       }
 
       if (this.roadmapDataToUpdate.length > 0) {
-        this.$api.roadmaps.put("/nodes", this.roadmapDataToUpdate);
+        RoadmapsService.updateRoadmapData(this.roadmapDataToUpdate);
       }
     },
   },

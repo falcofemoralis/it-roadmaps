@@ -1,48 +1,35 @@
 import { createStore } from 'vuex'
 import Opinion from "@/models/Opinion";
+import User from '@/models/User';
+import { VueCookieNext } from 'vue-cookie-next'
 
 export interface State {
   opinions: Array<Opinion>
+  token: string,
 }
-
-const getDefaultState = () => {
-  return {
-    token: '',
-    user: {}
-  };
-};
 
 export const store = createStore({
   state: {
     opinions: [],
     token: '',
-    user: {}
   },
   getters: {
-    isLoggedIn: state => {
+    getToken: state => {
       return state.token;
-    },
-    getUser: state => {
-      return state.user;
     }
   },
   mutations: {
     SET_TOKEN: (state, token) => {
+      VueCookieNext.setCookie("token", token)
       state.token = token;
     },
-    SET_USER: (state, user) => {
-      state.user = user;
-    },
     RESET: state => {
-      Object.assign(state, getDefaultState());
+      state.token = "";
     }
   },
   actions: {
-    login: ({ commit, dispatch }, { token, user }) => {
+    login: ({ commit }, { token }) => {
       commit('SET_TOKEN', token);
-      commit('SET_USER', user);
-      // set auth header
-      Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     },
     logout: ({ commit }) => {
       commit('RESET', '');

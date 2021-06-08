@@ -2,12 +2,11 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { store } from './store'
-import { api } from "@/services/api";
 import 'reflect-metadata';
+import { VueCookieNext } from 'vue-cookie-next'
 
-// set auth header
-Axios.defaults.headers.common['Authorization'] = `Bearer ${store.state.token}`;
+store.state.token = VueCookieNext.getCookie("token")
 
-const app = createApp(App)
-app.config.globalProperties.$api = api;
-app.use(store).use(router).mount('#app')
+console.log(store.state);
+
+createApp(App).use(VueCookieNext).use(store).use(router).mount('#app')

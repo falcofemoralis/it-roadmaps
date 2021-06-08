@@ -12,6 +12,7 @@
     "reflect-metadata": "^0.1.13",
     "vue": "^3.0.0",
     "vue-class-component": "^8.0.0-0",
+    "vue-cookie-next": "^1.0.3",
     "vue-modaltor": "^1.5.2",
     "vue-router": "^4.0.0-0",
     "vuex": "^4.0.0-0"

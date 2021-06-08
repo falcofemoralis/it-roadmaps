@@ -10,35 +10,29 @@
 
 
 <script lang="ts">
-import AuthService from "@/services/AuthService.js";
+import AuthService from "@/services/AuthService";
 import { defineComponent } from "vue";
 
 export default defineComponent({
   data() {
     return {
-      username: "",
-      password: "",
-      msg: "",
+      username: "" as string,
+      password: "" as string,
+      msg: "" as string,
     };
   },
   methods: {
-    async login() {
-      try {
-        const credentials = {
-          username: this.username,
-          password: this.password,
-        };
-        const response = await AuthService.login(credentials);
-        this.msg = response.msg;
-
-        const token = response.token;
-        const user = response.user;
-
-        this.$store.dispatch("login", { token, user });
-        this.$router.push("/");
-      } catch (error) {
-        this.msg = error.response.data.msg;
-      }
+    login() {
+      const credentials = {
+        username: this.username,
+        password: this.password,
+      };
+      AuthService.login(credentials)
+        .then((res) => {
+          this.$store.dispatch("login", { token: res.token });
+          this.$router.push("/");
+        })
+        .catch((err) => (this.msg = err));
     },
   },
 });

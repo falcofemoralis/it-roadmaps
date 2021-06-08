@@ -23,16 +23,12 @@ export default class UserController {
     public validateRegistration = (req: any, res: any, next: any): void => {
         // username min length 3
         if (!req.body.username || req.body.username.length < 3) {
-            return res.status(400).send({
-                msg: 'Please enter a username with minimum 3 chars'
-            });
+            return res.status(HttpCodes.BadRequest).send();
         }
 
         // password min 6 chars
         if (!req.body.password || req.body.password.length < 6) {
-            return res.status(400).send({
-                msg: 'Please enter a password with minimum 6 chars'
-            });
+            return res.status(HttpCodes.BadRequest).send();
         }
 
         // password (repeat) does not match
@@ -40,9 +36,7 @@ export default class UserController {
             !req.body.rePassword ||
             req.body.password != req.body.rePassword
         ) {
-            return res.status(400).send({
-                msg: 'Both passwords must match'
-            });
+            return res.status(HttpCodes.BadRequest).send();
         }
 
         next();
@@ -55,14 +49,14 @@ export default class UserController {
         let users = [];
 
         try {
-            users = await this.userModel.checkExistUser(username)
+            users = await this.userModel.checkExistUser(username);
         } catch (err) {
             res.status(HttpCodes.InternalServerError).send(err);
             return;
         }
 
         if (users.length > 0) {
-            res.status(HttpCodes.AlreadyExists).send();
+            res.status(HttpCodes.BadRequest).send();
             return;
         }
 
@@ -78,7 +72,7 @@ export default class UserController {
         // Starting registration 
         if (hashedPassword) {
             try {
-                await this.userModel.addUser(username.toLowerCase(), hashedPassword, Date.now());
+                await this.userModel.addUser(username, hashedPassword, Date.now());
                 res.status(HttpCodes.OK).send();
             } catch (err) {
                 res.status(HttpCodes.InternalServerError).send(err);
