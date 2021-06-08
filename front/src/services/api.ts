@@ -1,7 +1,9 @@
+import { store } from '../store/index'
+
 class BaseApiService {
     baseUrl: string;
     resource: string;
-    headers: Array<string>;
+    useToken: boolean;
 
     /**
      * Base constructor
@@ -11,7 +13,7 @@ class BaseApiService {
         this.baseUrl = "http://localhost:3000/api";
         if (!resource) throw new Error("Resource is not provided");
         this.resource = resource;
-        this.headers = [];
+        this.useToken = false;
     }
 
     /**
@@ -19,13 +21,25 @@ class BaseApiService {
      * @param id - id of resource
      * @returns url
      */
-    protected getUrl(subResource: string, id?: number): string {
+    protected getUrl(subResource: string, id?: string): string {
         return `${this.baseUrl}/${this.resource}${subResource}/${id ?? ""}`;
     }
 
-    /*     public setHeaders(headers: any) {
-    
-        } */
+    public setTokenHeader() {
+        this.useToken = true;
+        return this;
+    }
+
+    protected getTokenHeader(headers: Headers) {
+        headers.append("Authorization", store.getters.getToken)
+        return headers;
+    }
+
+    protected getJsonHeader(headers: Headers) {
+        headers.append("Accept", " application/json");
+        headers.append("Content-Type", "application/json");
+        return headers;
+    }
 }
 
 export default class ModelApiService extends BaseApiService {
@@ -39,9 +53,17 @@ export default class ModelApiService extends BaseApiService {
      * @param path - path in url
      * @returns json data
      */
-    public async get(path: string, id?: number) {
-        const response = await fetch(this.getUrl(path, id));
-        return await response.json();
+    protected async get(path: string, id?: string) {
+        let headers = new Headers();
+
+        if (this.useToken) {
+            headers = this.getTokenHeader(headers);
+        }
+
+        return await await fetch(this.getUrl(path, id), {
+            method: "GET",
+            headers: headers
+        });
     }
 
     /**
@@ -50,13 +72,17 @@ export default class ModelApiService extends BaseApiService {
      * @param path - path in url
      * @returns 
      */
-    public async post(path: string, data: any) {
+    protected async post(path: string, data: any) {
+        let headers = new Headers();
+        headers = this.getJsonHeader(headers);
+
+        if (this.useToken) {
+            headers = this.getTokenHeader(headers);
+        }
+
         return await fetch(this.getUrl(path), {
             method: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
+            headers: headers,
             body: JSON.stringify(data)
         });
     }
@@ -68,13 +94,17 @@ export default class ModelApiService extends BaseApiService {
      * @param data - data to upload
      * @returns 
      */
-    public async put(path: string, data: any = {}, id?: number) {
+    protected async put(path: string, data: any = {}, id?: string) {
+        let headers = new Headers();
+        headers = this.getJsonHeader(headers);
+
+        if (this.useToken) {
+            headers = this.getTokenHeader(headers);
+        }
+
         return await fetch(this.getUrl(path, id), {
             method: "PUT",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
+            headers: headers,
             body: JSON.stringify(data)
         });
     }
@@ -85,9 +115,16 @@ export default class ModelApiService extends BaseApiService {
      * @param path - path in url
      * @returns 
      */
-    public async delete(path: string, id?: number) {
+    protected async delete(path: string, id?: string) {
+        let headers = new Headers();
+
+        if (this.useToken) {
+            headers = this.getTokenHeader(headers);
+        }
+
         return await fetch(this.getUrl(path, id), {
-            method: "DELETE"
+            method: "DELETE",
+            headers: headers
         });
     }
 }

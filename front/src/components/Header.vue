@@ -3,11 +3,11 @@
     <div class="links">
       <img class="logo" src="../assets/logo.png" />
       <router-link to="/">Roadmaps</router-link> |
-      <router-link v-if="isLoggedIn" to="/progress">My progress</router-link>
+      <router-link v-if="isLoggedIn" to="/progress">My progress</router-link> |
     </div>
     <div v-if="isLoggedIn" class="userPanel" @click="changeState">
       <img src="../assets/userlogo.png" />
-      <span>Username</span>
+      <span>{{ username }}</span>
       <div class="userMenu" v-show="isUsermenu">
         <button @click="logOut">Log out</button>
       </div>
@@ -22,6 +22,8 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import AuthService from "@/services/AuthService";
+import User from "@/models/User";
 
 export default defineComponent({
   name: "Header",
@@ -29,11 +31,16 @@ export default defineComponent({
     return {
       isUsermenu: false as boolean,
       isLoggedIn: false as boolean,
+      username: "" as string,
     };
   },
   created() {
     if (this.$store.getters.getToken) {
       this.isLoggedIn = true;
+
+      AuthService.getUserData()
+        .then((user: User) => (this.username = user.username))
+        .catch((err: any) => console.log(err));
     }
   },
   methods: {

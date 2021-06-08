@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <router-link :to="{ name: 'roadmap', params: { id: roadmap._id } }">
+    <router-link :to="{ name: 'roadmap', params: { id: roadmap.id } }">
       <img
         class="card__preview"
         src="../assets/card_preview.png"

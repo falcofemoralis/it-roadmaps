@@ -1,67 +1,63 @@
 <template>
   <div class="home">
     <ul class="roadmap__shelf">
-      <li v-for="roadmap in roadmaps" :key="roadmap._id">
+      <li v-for="roadmap in roadmaps" :key="roadmap.id">
         <RoadmapCard :roadmap="roadmap" />
       </li>
       <li>
         <button class="add-btn" @click="createRoadmap">+</button>
       </li>
     </ul>
-    <DataModal v-show="roadmapDataActive" @save="saveRoadmap" @close="close">
-      <template v-slot:header>
-        <span>Enter roadmaps info</span>
-      </template>
-      <template v-slot:body>
-        <div>
-          <label>Name: </label>
-          <input type="text" v-model="roadmapTmp.name" />
-        </div>
-        <div>
-          <label>Description: </label>
-          <input type="text" v-model="roadmapTmp.description" />
-        </div>
-      </template>
-    </DataModal>
+    <NewRoadmapModal
+      v-show="roadmapDataActive"
+      @save="saveRoadmap"
+      @close="close"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { plainToClass } from "class-transformer";
 import RoadmapCard from "@/components/RoadmapCard.vue";
-import DataModal from "@/components/DataModal.vue";
+import NewRoadmapModal from "@/components/NewRoadmapModal.vue";
 import Roadmap from "@/models/Roadmap";
 import RoadmapsService from "@/services/RoadmapService";
 
 export default defineComponent({
   components: {
     RoadmapCard,
-    DataModal,
+    NewRoadmapModal,
   },
   data() {
     return {
-      roadmaps: [] as Array<Roadmap>,
-      roadmapTmp: {} as Roadmap,
+      roadmaps: [] as Roadmap[],
       roadmapDataActive: false as boolean,
     };
   },
-  async created() {
-    this.roadmaps = await RoadmapsService.getRoadmaps();
+  created() {
+    RoadmapsService.getRoadmaps()
+      .then((roadmaps: Roadmap[]) => {
+        this.roadmaps = roadmaps;
+      })
+      .catch((err) => console.log(err));
   },
   methods: {
+    createRoadmap() {
+      this.roadmapDataActive = true;
+    },
     close() {
       this.roadmapDataActive = false;
     },
-    createRoadmap() {
-      this.roadmapTmp = new Roadmap("", "", "");
-      this.roadmapDataActive = true;
-    },
-    async saveRoadmap() {
-      const id = await RoadmapsService.saveRoadmap(this.roadmapTmp);
-      this.roadmapTmp.id = id;
-      this.roadmaps.push(this.roadmapTmp);
-      this.roadmapDataActive = false;
+    saveRoadmap(name: string, description: string) {
+      const roadmap = new Roadmap("", name, description);
+
+      RoadmapsService.saveRoadmap(roadmap)
+        .then((id) => {
+          roadmap.id = id;
+          this.roadmaps.push(roadmap);
+          this.roadmapDataActive = false;
+        })
+        .catch((err) => console.log(err));
     },
   },
 });

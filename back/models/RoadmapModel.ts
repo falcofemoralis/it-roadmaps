@@ -16,8 +16,7 @@ export default class RoadmapModel {
         const nodeScheme = new Schema({
             roadmapId: { type: String, required: true },
             name: { type: String, required: true },
-            id: { type: Number, required: true },
-            parentId: { type: Number },
+            parentId: { type: String },
             tasks: {
                 type: [{
                     name: { type: String, required: true },
@@ -30,7 +29,6 @@ export default class RoadmapModel {
         this.NodeModel = mongoose.model("Node", nodeScheme);
 
         const opinionScheme = new Schema({
-            _id: { type: String, required: true },
             name: { type: String, required: true },
             color: { type: String, required: true }
         });
@@ -41,24 +39,22 @@ export default class RoadmapModel {
         return await this.RoadmapModel.find();
     }
 
-    public async addNodes(nodes: any) {
-        await this.NodeModel.insertMany(nodes);
+    public async addNode(node: any) {
+        const res = await this.NodeModel.create(node);
+        return res._id;
     }
 
     public async getNodes(roadmapId: string) {
         return await this.NodeModel.find({ roadmapId: roadmapId });
     }
 
+
     public async getOpinions() {
         return await this.OpinionModel.find()
     }
 
-    public async updateNodes(nodes: any) {
-        for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i];
-
-            await this.NodeModel.updateOne({ id: node.id }, { tasks: node.tasks });
-        }
+    public async updateNode(nodeId: string, data: any) {
+        await this.NodeModel.updateOne({ _id: nodeId }, data);
     }
 
     public async addRoadmap(roadmap: any) {

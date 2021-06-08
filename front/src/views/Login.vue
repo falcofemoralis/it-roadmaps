@@ -28,8 +28,8 @@ export default defineComponent({
         password: this.password,
       };
       AuthService.login(credentials)
-        .then((res) => {
-          this.$store.dispatch("login", { token: res.token });
+        .then((token) => {
+          this.$store.dispatch("login", { token: token });
           this.$router.push("/");
         })
         .catch((err) => (this.msg = err));

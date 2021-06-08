@@ -29,7 +29,7 @@ export default defineComponent({
       this.$emit("close");
     },
     save() {
-      this.$emit("save");
+      this.$emit("saveModal");
     },
   },
 });

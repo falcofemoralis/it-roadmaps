@@ -7,13 +7,12 @@
       <li v-for="(task, index) in node.tasks" :key="index">
         <div class="roadmap-task">
           <span class="task-name"> {{ task.name }}</span>
-          <span class="task-description"> {{ task.description }}</span>
+          <span class="task-description" v-if="task.description">
+            {{ task.description }}
+          </span>
           <div class="task-controls">
-            <div>
-              <span>×</span>
-              <span>✓</span>
-            </div>
-            <span @click="showMsg('You know it!')">I know it</span>
+            <span @click="saveProgress(false)">Learn it</span>
+            <span @click="saveProgress(true)">I know it</span>
           </div>
           <div
             v-if="task.opinionId"
@@ -30,7 +29,8 @@
       v-if="node.opinionId"
       class="opinion"
       :style="'background:' + getOpinion(node.opinionId).color"
-      >✓
+    >
+      ✓
     </span>
   </div>
 </template>
@@ -60,8 +60,11 @@ export default defineComponent({
     },
     getOpinion(id: string): Opinion | undefined {
       return this.$store.state.opinions.find(
-        (opinion: Opinion) => opinion._id === id
+        (opinion: Opinion) => opinion.id === id
       );
+    },
+    saveProgress(isCompleted: boolean) {
+      this.$emit("progress", isCompleted, this.node.id);
     },
   },
 });

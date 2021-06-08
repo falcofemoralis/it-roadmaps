@@ -119,12 +119,40 @@ export default class UserController {
     public isLoggedIn = async (req: any, res: any, next: any) => {
         try {
             const token = req.headers.authorization;
-            const decoded = jwt.verify(token, this.secretKey);
+            req.userData = jwt.verify(token, this.secretKey);
 
-            req.userData = decoded; // stores username and userId
             next();
         } catch (err) {
             return res.status(HttpCodes.Unauthorized).send();
+        }
+    }
+
+    public getUserData = async (req: any, res: any) => {
+        res.status(HttpCodes.OK).send(req.userData);
+    }
+
+    public updateProgress = async (req: any, res: any) => {
+        try {
+            const userId = req.userData.userId;
+            const roadmapId = req.body.roadmapId;
+            const nodeId = req.params.id;
+            const isCompleted = req.body.isCompleted;
+
+            await this.userModel.updateProgress(userId, roadmapId, nodeId, isCompleted);
+            res.status(HttpCodes.OK).send();
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send();
+        }
+    }
+
+    public getProgress = async (req: any, res: any) => {
+        try {
+            const userId = req.userData.userId;
+            const roadmapId = req.body.roadmapId;
+            const progress = await this.userModel.getProgress(userId, roadmapId);
+            res.status(HttpCodes.OK).send(progress);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send();
         }
     }
 }

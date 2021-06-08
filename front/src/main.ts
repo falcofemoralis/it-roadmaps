@@ -7,6 +7,4 @@ import { VueCookieNext } from 'vue-cookie-next'
 
 store.state.token = VueCookieNext.getCookie("token")
 
-console.log(store.state);
-
 createApp(App).use(VueCookieNext).use(store).use(router).mount('#app')
