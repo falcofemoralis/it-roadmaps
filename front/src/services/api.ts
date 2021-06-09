@@ -10,7 +10,7 @@ class BaseApiService {
      * @param resource - A particular resource, e.g. users, posts, comments etc.
      */
     constructor(resource: string) {
-        this.baseUrl = "http://localhost:3000/api";
+        this.baseUrl = `https://cryptic-springs-37822.herokuapp.com/api`;
         if (!resource) throw new Error("Resource is not provided");
         this.resource = resource;
         this.useToken = false;
