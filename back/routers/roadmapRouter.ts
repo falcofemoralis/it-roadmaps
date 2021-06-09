@@ -7,6 +7,7 @@ const roadmapController: RoadmapController = new RoadmapController()
 roadmapRouter.get("/opinions", roadmapController.getOpinions)
 roadmapRouter.get("/all", roadmapController.getRoadmaps)
 roadmapRouter.get("/nodes/:id", roadmapController.getRoadmapData)
+roadmapRouter.get("/nodes", roadmapController.getAllData)
 roadmapRouter.get("/:id", roadmapController.getRoadmap)
 
 roadmapRouter.post("/node", roadmapController.saveNode)

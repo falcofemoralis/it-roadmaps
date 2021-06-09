@@ -14,7 +14,7 @@
       </div>
       <select v-model="opinionId">
         <option
-          v-for="(opinion, index) in $store.state.opinions"
+          v-for="(opinion, index) in opinions"
           :key="index"
           :value="opinion.id"
           :style="'color: ' + opinion.color"
@@ -30,6 +30,8 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import DataModal from "@/components/DataModal.vue";
+import Opinion from "@/models/Opinion";
+import RoadmapService from "@/services/RoadmapService";
 
 export default defineComponent({
   name: "NewTaskModal",
@@ -41,7 +43,13 @@ export default defineComponent({
       name: "" as string,
       description: "" as string,
       opinionId: "" as string,
+      opinions: [] as Opinion[],
     };
+  },
+  created() {
+    RoadmapService.getOpinions().then((opinions) => {
+      this.opinions = opinions;
+    });
   },
   methods: {
     saveTaskModal() {
@@ -54,7 +62,3 @@ export default defineComponent({
   },
 });
 </script>
-
-
-<style lang="scss">
-</style>

@@ -2,6 +2,7 @@ import ModelApiService from "./Api";
 import Node from "@/models/Node";
 import Opinion from "@/models/Opinion";
 import Roadmap from "@/models/Roadmap";
+import Task from "@/models/Task";
 
 class RoadmapsApiService extends ModelApiService {
     constructor() {
@@ -24,6 +25,12 @@ class RoadmapsApiService extends ModelApiService {
         }
     }
 
+    public getOpinionById(opinions: Opinion[], id: string) {
+        return opinions.find(
+            (opinion: Opinion) => opinion.id === id
+        )
+    }
+
     public async getRoadmap(id: string) {
         const response = await this.get(`/${id}`);
 
@@ -36,15 +43,19 @@ class RoadmapsApiService extends ModelApiService {
         }
     }
 
-    public async getRoadmapData(id: string) {
-        const response = await this.get(`/nodes/${id}`);
+    public async getRoadmapData(id?: string) {
+        const response = await this.get("/nodes", id);
 
         if (response.status == 200) {
             const dataJson = await response.json();
             const roadmapData: Node[] = [];
 
             dataJson.forEach((obj: any) => {
-                roadmapData.push(new Node(obj._id, obj.roadmapId, obj.name, { opinionId: obj.opinionId, tasks: obj.tasks, parentId: obj.parentId }));
+                const tasks: Task[] = [];
+                obj.tasks.forEach((task: any) => {
+                    tasks.push(new Task(task._id, task.name, task.description, task.opinionId));
+                })
+                roadmapData.push(new Node(obj._id, obj.roadmapId, obj.name, { opinionId: obj.opinionId, tasks: tasks, parentId: obj.parentId }));
             });
 
             return roadmapData;
@@ -68,7 +79,14 @@ class RoadmapsApiService extends ModelApiService {
         const response = await this.put("/node", data, nodeId);
 
         if (response.status == 200) {
-            return;
+            const dataJson = await response.json();
+
+            const tasks: Task[] = [];
+            dataJson.tasks.forEach((task: any) => {
+                tasks.push(new Task(task._id, task.name, task.description, task.opinionId));
+            });
+
+            return new Node(dataJson._id, dataJson.roadmapId, dataJson.name, { opinionId: dataJson.opinionId, tasks: tasks, parentId: dataJson.parentId });
         } else {
             throw new Error(`Error code: ${response.status}`)
         }

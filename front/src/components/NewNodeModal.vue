@@ -10,7 +10,7 @@
       </div>
       <select v-model="opinionId">
         <option
-          v-for="(opinion, index) in $store.state.opinions"
+          v-for="(opinion, index) in opinions"
           :key="index"
           :value="opinion.id"
           :style="'color: ' + opinion.color"
@@ -26,6 +26,8 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import DataModal from "@/components/DataModal.vue";
+import RoadmapService from "@/services/RoadmapService";
+import Opinion from "@/models/Opinion";
 
 export default defineComponent({
   name: "NewNodeModal",
@@ -36,7 +38,13 @@ export default defineComponent({
     return {
       name: "" as string,
       opinionId: null as string | null,
+      opinions: [] as Opinion[],
     };
+  },
+  created() {
+    RoadmapService.getOpinions().then((opinions) => {
+      this.opinions = opinions;
+    });
   },
   methods: {
     saveNodeModal() {
@@ -48,7 +56,3 @@ export default defineComponent({
   },
 });
 </script>
-
-
-<style lang="scss">
-</style>

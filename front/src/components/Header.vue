@@ -2,8 +2,8 @@
   <div class="nav">
     <div class="links">
       <img class="logo" src="../assets/logo.png" />
-      <router-link to="/">Roadmaps</router-link> |
-      <router-link v-if="isLoggedIn" to="/progress">My progress</router-link> |
+      <router-link to="/">Roadmaps</router-link>
+      <router-link v-if="isLoggedIn" to="/progress">| My progress</router-link>
     </div>
     <div v-if="isLoggedIn" class="userPanel" @click="changeState">
       <img src="../assets/userlogo.png" />
@@ -30,18 +30,8 @@ export default defineComponent({
   data() {
     return {
       isUsermenu: false as boolean,
-      isLoggedIn: false as boolean,
       username: "" as string,
     };
-  },
-  created() {
-    if (this.$store.getters.getToken) {
-      this.isLoggedIn = true;
-
-      AuthService.getUserData()
-        .then((user: User) => (this.username = user.username))
-        .catch((err: any) => console.log(err));
-    }
   },
   methods: {
     changeState() {
@@ -50,6 +40,19 @@ export default defineComponent({
     logOut() {
       this.$store.dispatch("logout");
       this.$router.push("/");
+    },
+    getUsername() {
+      AuthService.getUserData()
+        .then((user: User) => (this.username = user.username))
+        .catch((err: any) => console.log(err));
+    },
+  },
+  computed: {
+    isLoggedIn() {
+      if (this.$store.getters.getToken) {
+        this.getUsername();
+      }
+      return this.$store.getters.getToken;
     },
   },
 });

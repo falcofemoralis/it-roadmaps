@@ -31,6 +31,15 @@ export default class RoadmapController {
         }
     }
 
+    public getAllData = async (req: any, res: any) => {
+        try {
+            const nodes = await this.roadmapModel.getAllNodes();
+            res.status(HttpCodes.OK).send(nodes);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
+    }
+
     public getRoadmap = async (req: any, res: any) => {
         try {
             const roadmap = (await this.roadmapModel.getRoadmap(req.params.id))[0];
@@ -70,8 +79,8 @@ export default class RoadmapController {
 
     public updateNode = async (req: any, res: any) => {
         try {
-            await this.roadmapModel.updateNode(req.params.id, req.body);
-            res.status(HttpCodes.OK).send();
+            const updatedNode = await this.roadmapModel.updateNode(req.params.id, req.body);
+            res.status(HttpCodes.OK).send(updatedNode);
         } catch (err) {
             res.status(HttpCodes.InternalServerError).send(err);
         }

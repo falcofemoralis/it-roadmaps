@@ -3,8 +3,11 @@ export default class Task {
     name: string;
     description: string;
     opinionId: string;
+    isCompleted: boolean | undefined;
+    time: number | undefined;
 
-    constructor(name: string, description: string, opinionId: string) {
+    constructor(id: string, name: string, description: string, opinionId: string) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.opinionId = opinionId;

@@ -1,17 +1,14 @@
 import { createStore } from 'vuex'
-import Opinion from "@/models/Opinion";
-import User from '@/models/User';
 import { VueCookieNext } from 'vue-cookie-next'
 
 export interface State {
-  opinions: Array<Opinion>
-  token: string,
+  token: string
 }
 
 export const store = createStore({
   state: {
-    opinions: [],
-    token: '',
+    token: '' as string,
+    isAdmin: false as boolean
   },
   getters: {
     getToken: state => {
@@ -24,6 +21,7 @@ export const store = createStore({
       state.token = token;
     },
     RESET: state => {
+      VueCookieNext.removeCookie("token");
       state.token = "";
     }
   },

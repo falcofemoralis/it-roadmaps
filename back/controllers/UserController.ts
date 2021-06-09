@@ -136,11 +136,14 @@ export default class UserController {
             const userId = req.userData.userId;
             const roadmapId = req.body.roadmapId;
             const nodeId = req.params.id;
+            const taskId = req.body.taskId;
             const isCompleted = req.body.isCompleted;
 
-            await this.userModel.updateProgress(userId, roadmapId, nodeId, isCompleted);
-            res.status(HttpCodes.OK).send();
+            const insertedProgress = await this.userModel.updateProgress(userId, roadmapId, nodeId, taskId, isCompleted, Date.now());
+            res.status(HttpCodes.OK).send(insertedProgress);
         } catch (err) {
+            console.log(err);
+
             res.status(HttpCodes.InternalServerError).send();
         }
     }
@@ -148,11 +151,37 @@ export default class UserController {
     public getProgress = async (req: any, res: any) => {
         try {
             const userId = req.userData.userId;
-            const roadmapId = req.body.roadmapId;
+            const roadmapId = req.params.id;
             const progress = await this.userModel.getProgress(userId, roadmapId);
             res.status(HttpCodes.OK).send(progress);
         } catch (err) {
             res.status(HttpCodes.InternalServerError).send();
         }
     }
+
+    public getAllProgress = async (req: any, res: any) => {
+        try {
+            const userId = req.userData.userId;
+            const progress = await this.userModel.getAllProgress(userId);
+            res.status(HttpCodes.OK).send(progress);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send();
+        }
+    }
+
+    public checkPermission = async (req: any, res: any) => {
+        try {
+            const userId = req.userData.userId;
+            const user = await this.userModel.checkUser(userId);
+            console.log(user);
+            console.log(user.isAdmin);
+
+            res.status(HttpCodes.OK).send({ isAdmin: user.isAdmin ?? false });
+        } catch (err) {
+            console.log(err);
+
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
+    }
+
 }

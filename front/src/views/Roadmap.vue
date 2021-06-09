@@ -8,7 +8,7 @@
     <ul class="roadmap">
       <li
         class="roadmap-block"
-        v-for="(block, index) in getRoadmapBlocks(roadmapData)"
+        v-for="(block, index) in getRoadmapBlocks()"
         :key="index"
       >
         <ul class="roadmap-nodes">
@@ -17,7 +17,11 @@
               <li v-for="node in nodes" :key="node.id">
                 <RoadmapNode :node="node" @progress="updateProgress">
                   <template v-slot:addTask>
-                    <button class="add-btn" @click="createTask(node)">
+                    <button
+                      class="add-btn"
+                      @click="createTask(node)"
+                      v-if="$store.state.isAdmin"
+                    >
                       New task
                     </button>
                   </template>
@@ -26,13 +30,17 @@
             </ul>
           </li>
           <li class="btn-wrapper">
-            <button class="add-btn" @click="createNode(block[0][0].id)">
+            <button
+              class="add-btn"
+              @click="createNode(block[0][0].id)"
+              v-if="$store.state.isAdmin"
+            >
               New node
             </button>
           </li>
         </ul>
       </li>
-      <li class="btn-wrapper">
+      <li class="btn-wrapper" v-if="$store.state.isAdmin">
         <button class="add-btn" @click="createBlock">New block</button>
       </li>
     </ul>
@@ -53,6 +61,7 @@ import RoadmapsService from "@/services/RoadmapService";
 import AuthService from "@/services/AuthService";
 import NewNodeModal from "@/components/NewNodeModal.vue";
 import NewTaskModal from "@/components/NewTaskModal.vue";
+import Progress from "@/models/Progress";
 
 export default defineComponent({
   components: {
@@ -69,48 +78,67 @@ export default defineComponent({
       msg: "" as string,
       parentIdTmp: null as string | null,
       nodeTmp: {} as Node,
+      progress: [] as Progress[],
     };
   },
   created() {
-    // Download opinions
-    RoadmapsService.getOpinions()
-      .then((opinions) => {
-        this.$store.state.opinions = opinions;
+    // Download roadmap
+    RoadmapsService.getRoadmap(this.$route.params.id as string)
+      .then((roadmap) => {
+        this.roadmap = roadmap;
 
-        // Download roadmap
-        RoadmapsService.getRoadmap(this.$route.params.id as string)
-          .then((roadmap) => {
-            this.roadmap = roadmap;
-
-            // Download roadmap data (nodes)
-            RoadmapsService.getRoadmapData(this.roadmap.id as string)
-              .then((roadmapData) => (this.roadmapData = roadmapData))
-              .catch((err: any) => (this.msg = err));
-          })
+        // Download roadmap data (nodes)
+        RoadmapsService.getRoadmapData(this.roadmap.id as string)
+          .then((roadmapData) => (this.roadmapData = roadmapData))
           .catch((err: any) => (this.msg = err));
+
+        // Download user progress
+        AuthService.getProgress(this.roadmap.id as string)
+          .then((progress) => (this.progress = progress))
+          .catch((err) => (this.msg = err));
       })
       .catch((err: any) => (this.msg = err));
   },
+  computed: {},
   methods: {
-    getRoadmapBlocks(roadmapData: Node[]) {
+    getRoadmapBlocks() {
       const blocks: Node[][][] = [];
 
-      for (let i = 0; i < roadmapData.length; i++) {
-        if (!roadmapData[i].parentId) {
-          blocks.push([[roadmapData[i]]]);
+      for (let i = 0; i < this.progress.length; i++) {
+        this.applyProgress(this.progress[i]);
+      }
+
+      for (let i = 0; i < this.roadmapData.length; i++) {
+        if (!this.roadmapData[i].parentId) {
+          blocks.push([[this.roadmapData[i]]]);
         }
       }
 
-      for (let i = 0; i < roadmapData.length; i++) {
+      for (let i = 0; i < this.roadmapData.length; i++) {
         for (let j = 0; j < blocks.length; ++j) {
-          if (blocks[j][0][0].id === roadmapData[i].parentId) {
+          if (blocks[j][0][0].id === this.roadmapData[i].parentId) {
             if (!blocks[j][1]) blocks[j][1] = [];
-            blocks[j][1].push(roadmapData[i]);
+            blocks[j][1].push(this.roadmapData[i]);
           }
         }
       }
 
       return blocks;
+    },
+    applyProgress(progress: Progress) {
+      for (let j = 0; j < this.roadmapData.length; j++) {
+        const node = this.roadmapData[j];
+
+        if (progress.nodeId === node.id && node.tasks) {
+          for (let n = 0; n < node.tasks.length; n++) {
+            const task = node.tasks[n];
+
+            if (task.id === progress.taskId) {
+              task.isCompleted = progress.isCompleted;
+            }
+          }
+        }
+      }
     },
     createBlock() {
       this.nodeModalActive = true;
@@ -143,14 +171,15 @@ export default defineComponent({
       this.taskModalActive = true;
     },
     saveTask(name: string, description: string, opinionId: string) {
-      const task = new Task(name, description, opinionId);
+      const task = new Task("", name, description, opinionId);
       const tasks = this.nodeTmp.tasks ?? [];
       tasks.push(task);
 
       RoadmapsService.updateNode(this.nodeTmp.id, { tasks: tasks })
-        .then(() => {
+        .then((updatedNode) => {
           for (let i = 0; i < this.roadmapData.length; i++) {
             if (this.roadmapData[i].id == this.nodeTmp.id) {
+              this.nodeTmp.tasks = updatedNode.tasks;
               this.roadmapData[i] = this.nodeTmp;
               break;
             }
@@ -167,10 +196,11 @@ export default defineComponent({
         this.taskModalActive = false;
       }
     },
-    updateProgress(isCompleted: boolean, nodeId: string) {
+    updateProgress(isCompleted: boolean, nodeId: string, taskId: string) {
       AuthService.updateProgress(
         this.roadmap.id as string,
         nodeId,
+        taskId,
         isCompleted
       ).catch((err) => console.log(err));
     },
@@ -180,43 +210,21 @@ export default defineComponent({
 
 
 <style lang="scss" scoped>
+@import "@/styles/elements.scss";
+
 .roadmap-info {
+  @extend %info;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  padding: 25px;
-
-  h2 {
-    font-weight: 700;
-    margin-bottom: 12px;
-    font-size: 48px;
-  }
-
-  span {
-    font-size: 16px;
-    color: rgb(68, 68, 68);
-  }
 }
 
 .roadmap {
-  padding: 20px 0 20px;
-  position: relative;
+  @extend %timeline-page;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #ebebeb;
-
-  &:before {
-    top: 0;
-    bottom: 0;
-    position: absolute;
-    content: " ";
-    width: 3px;
-    background-color: rgb(102, 102, 102);
-    left: 50%;
-    z-index: 0;
-  }
 
   .roadmap-block {
     margin-bottom: 50px;
@@ -229,10 +237,6 @@ export default defineComponent({
     align-items: center;
     flex-direction: column;
   }
-}
-
-.wrapper {
-  max-width: none !important;
 }
 
 %btn {

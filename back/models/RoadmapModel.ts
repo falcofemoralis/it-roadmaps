@@ -48,13 +48,16 @@ export default class RoadmapModel {
         return await this.NodeModel.find({ roadmapId: roadmapId });
     }
 
+    public async getAllNodes() {
+        return await this.NodeModel.find();
+    }
 
     public async getOpinions() {
         return await this.OpinionModel.find()
     }
 
     public async updateNode(nodeId: string, data: any) {
-        await this.NodeModel.updateOne({ _id: nodeId }, data);
+        return await this.NodeModel.findOneAndUpdate({ _id: nodeId }, data);
     }
 
     public async addRoadmap(roadmap: any) {
