@@ -5,63 +5,88 @@
     </h3>
     <ul v-if="node.tasks" class="roadmap-tasks">
       <li v-for="(task, index) in node.tasks" :key="index">
-        <div class="roadmap-task">
-          <span class="task-name"> {{ task.name }}</span>
-          <span class="task-description"> {{ task.description }}</span>
-          <div class="task-controls">
-            <div>
-              <span>×</span>
-              <span>✓</span>
+        <TaskComponent
+          :opinions="opinions"
+          :name="task.name"
+          :description="task.description"
+          :opinionId="task.opinionId"
+        >
+          <template v-slot:controls>
+            <div class="task-controls" v-if="$store.state.token">
+              <span v-if="!task.isCompleted" @click="saveProgress(true, task)">
+                I know it
+              </span>
+              <span v-else @click="saveProgress(false, task)">
+                I forget this
+              </span>
             </div>
-            <span @click="showMsg('You know it!')">I know it</span>
-          </div>
-          <div
-            v-if="task.opinionId"
-            class="opinion"
-            :style="'background:' + getOpinion(task.opinionId).color"
-          >
-            ✓
-          </div>
-        </div>
+            <div class="task-controls" v-else>
+              <span @click="showAlert">I know it</span>
+            </div>
+          </template>
+        </TaskComponent>
       </li>
     </ul>
     <slot name="addTask" />
     <span
       v-if="node.opinionId"
       class="opinion"
-      :style="'background:' + getOpinion(node.opinionId).color"
-      >✓
+      :style="'background:' + opinion.color"
+    >
+      ✓
     </span>
   </div>
 </template>
 
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import Node from "@/models/Node";
+import Task from "@/models/Task";
+import TaskComponent from "@/components/TaskComponent.vue";
 import Opinion from "@/models/Opinion";
+import RoadmapService from "@/services/RoadmapService";
 
 export default defineComponent({
   name: "RoadmapNode",
+  components: {
+    TaskComponent,
+  },
   props: {
     node: {
       type: Node,
       required: true,
     },
+    opinions: { type: Array as PropType<Array<Opinion>>, required: true },
   },
   data() {
     return {
       currentModal: -1 as number,
+      opinion: {} as Opinion,
     };
+  },
+  created() {
+    if (this.node.opinionId) {
+      const opinion = RoadmapService.getOpinionById(
+        this.opinions,
+        this.node.opinionId
+      );
+
+      if (opinion) {
+        this.opinion = opinion;
+      }
+    }
   },
   methods: {
     showMsg(msg: string) {
       alert(msg);
     },
-    getOpinion(id: string): Opinion | undefined {
-      return this.$store.state.opinions.find(
-        (opinion: Opinion) => opinion._id === id
-      );
+    saveProgress(isCompleted: boolean, task: Task) {
+      task.isCompleted = !task.isCompleted;
+      this.$emit("progress", isCompleted, this.node.id, task.id);
+    },
+    showAlert() {
+      alert("Sign up or login to achieve it!");
     },
   },
 });
@@ -69,6 +94,8 @@ export default defineComponent({
 
 
 <style lang="scss" scoped>
+@import "@/styles/elements.scss";
+
 .roadmap-node {
   position: relative;
   min-width: 250px;
@@ -98,62 +125,23 @@ export default defineComponent({
     display: grid;
     grid-gap: 24px;
     grid-template-columns: repeat(3, 1fr);
-
-    .roadmap-task {
-      position: relative;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-direction: column;
-      min-height: 150px;
-      min-width: 225px;
-      max-width: 250px;
-      font-size: 14px;
-      border-radius: 5px;
-      background: #69b7fe;
-      padding: 20px;
-
-      .task-name {
-        height: auto;
-        width: 100%;
-        padding: 8px;
-        color: #145796;
-        font-weight: bold;
-        font-size: 18px;
-        text-align: start;
-      }
-
-      .task-description {
-        height: auto;
-        width: 100%;
-        text-align: start;
-      }
-
-      .task-controls {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        margin-top: 25px;
-
-        span {
-          color: #fff;
-          font-weight: bold;
-          cursor: pointer;
-        }
-      }
-    }
   }
+}
 
-  .opinion {
-    position: absolute;
-    top: -12px;
-    left: -12px;
-    font-size: 18px;
-    height: 24px;
-    width: 24px;
+.task-controls {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+
+  span {
     color: #fff;
-    border-radius: 24px;
-    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
   }
+}
+
+.opinion {
+  @extend %opinion;
 }
 </style>

@@ -2,9 +2,11 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { store } from './store'
-import { api } from "@/services/api";
 import 'reflect-metadata';
+import { VueCookieNext } from 'vue-cookie-next'
+import AuthService from '@/services/AuthService'
 
-const app = createApp(App)
-app.config.globalProperties.$api = api;
-app.use(store).use(router).mount('#app')
+store.state.token = VueCookieNext.getCookie("token")
+AuthService.checkPermission().then((isAdmin) => store.state.isAdmin = isAdmin);
+
+createApp(App).use(VueCookieNext).use(store).use(router).mount('#app')

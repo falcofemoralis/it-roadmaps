@@ -2,16 +2,16 @@ import Task from "./Task";
 
 export default class Node {
     name: string;
-    id: number;
+    id: string;
     roadmapId: string;
-    parentId: number | undefined;
+    parentId: string | undefined;
     opinionId: string | undefined;
     tasks: Array<Task> | undefined;
 
-    constructor(roadmapId: string, name: string, options?: any) {
+    constructor(id: string, roadmapId: string, name: string, options?: any) {
+        this.id = id;
         this.roadmapId = roadmapId;
         this.name = name;
-        this.id = Date.now() + Math.floor(Math.random() * 1000);
 
         if (options) {
             this.opinionId = options.opinionId;

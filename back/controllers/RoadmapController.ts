@@ -1,4 +1,5 @@
 import RoadmapModel from '../models/RoadmapModel';
+import { HttpCodes } from '../constants/HttpCodes';
 
 export default class RoadmapController {
     roadmapModel: RoadmapModel;
@@ -7,47 +8,90 @@ export default class RoadmapController {
         this.roadmapModel = new RoadmapModel();
     }
 
-    public getRoadmapData = (req: any, res: any): void => {
-        this.roadmapModel.getNodes(req.params.id, (result: any) => {
-            res.status(200).send(result);
-        })
+    public getOpinions = async (req: any, res: any) => {
+        try {
+            const opinions = await this.roadmapModel.getOpinions();
+
+            if (opinions.length > 0) {
+                res.status(HttpCodes.OK).send(opinions);
+            } else {
+                res.status(HttpCodes.NotFound).send();
+            }
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
     }
 
-    public getRoadmap = (req: any, res: any): void => {
-        this.roadmapModel.getRoadmap(req.params.id, (result: any) => {
-            res.status(200).send(result[0]);
-        })
+    public getRoadmapData = async (req: any, res: any) => {
+        try {
+            const nodes = await this.roadmapModel.getNodes(req.params.id);
+            res.status(HttpCodes.OK).send(nodes);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
     }
 
-    public getRoadmaps = (req: any, res: any): void => {
-        this.roadmapModel.getRoadmaps((result: any) => {
-            res.status(200).send(result);
-        })
+    public getAllData = async (req: any, res: any) => {
+        try {
+            const nodes = await this.roadmapModel.getAllNodes();
+            res.status(HttpCodes.OK).send(nodes);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
     }
 
-    public saveRoadmap = (req: any, res: any): void => {
-        this.roadmapModel.addNodes(req.body, () => {
-            res.status(200).send();
-        });
+    public getRoadmap = async (req: any, res: any) => {
+        try {
+            const roadmap = (await this.roadmapModel.getRoadmap(req.params.id))[0];
+            if (roadmap) {
+                res.status(HttpCodes.OK).send(roadmap);
+            } else {
+                res.status(HttpCodes.NotFound).send();
+            }
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
     }
 
-    public getOpinions = (req: any, res: any): void => {
-        this.roadmapModel.getOpinions((result: any) => {
-            res.status(200).send(result);
-        });
+    public getRoadmaps = async (req: any, res: any) => {
+        try {
+            const roadmaps = await this.roadmapModel.getRoadmaps();
+            if (roadmaps.length > 0) {
+                res.status(HttpCodes.OK).send(roadmaps);
+            } else {
+                res.status(HttpCodes.NotFound).send();
+            }
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
     }
 
-    public updateRoadmap = (req: any, res: any): void => {
-        this.roadmapModel.updateNodes(req.body, () => {
-            res.status(200).send();
-        });
+    public saveNode = async (req: any, res: any) => {
+        try {
+            const insertedId = await this.roadmapModel.addNode(req.body)
+            res.status(HttpCodes.OK).send({ id: insertedId });
+        } catch (err) {
+            console.log(err);
+
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
     }
 
-    public newRoadmap = (req: any, res: any): void => {
-        this.roadmapModel.addRoadmap(req.body, (id: string) => {
-            console.log(id);
+    public updateNode = async (req: any, res: any) => {
+        try {
+            await this.roadmapModel.updateNode(req.params.id, req.body);
+            res.status(HttpCodes.OK).send();
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
+    }
 
-            res.status(200).send({ id: id });
-        })
+    public newRoadmap = async (req: any, res: any) => {
+        try {
+            const insertedId = await this.roadmapModel.addRoadmap(req.body);
+            res.status(HttpCodes.OK).send({ id: insertedId });
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
     }
 }

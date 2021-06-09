@@ -1,103 +1,180 @@
 import UserModel from '../models/UserModel';
-import { MongoClient } from 'mongodb';
-import mongoose, { Schema } from 'mongoose';
+import { HttpCodes } from '../constants/HttpCodes';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
-export class Task {
-    name: string;
-    description: string;
-    opinion: Opinion;
-
-    constructor(name: string, opinion: Opinion) {
-        this.name = name;
-        this.opinion = opinion;
-        this.description = "This is tech that creates new blocks and replace them as new on html page";
-    }
-}
-
-export enum Opinion {
-    Recommended = "#9900ff",
-    Alternative = "#39761d",
-    Extra = "#9c9b9a",
-}
-
-export class Node {
-    name: string;
-    opinion: Opinion | undefined;
-    childNodes: Node[] | undefined;
-    tasks: Task[] | undefined;
-
-    constructor(name: string, options?: any) {
-        this.name = name;
-        if (options) {
-            this.opinion = options.opinion;
-            this.childNodes = options.childNodes;
-            this.tasks = options.tasks;
-        }
-    }
+export interface IUser {
+    _id: string,
+    username: string,
+    password: string,
+    time: number
 }
 
 export default class UserController {
     userModel: UserModel;
+    secretKey: string;
 
     constructor() {
         this.userModel = new UserModel();
+        this.secretKey = "abba";
     }
 
-    public testdb = (req: any, res: any): void => {
+    // Middlware
+    public validateRegistration = (req: any, res: any, next: any): void => {
+        // username min length 3
+        if (!req.body.username || req.body.username.length < 3) {
+            return res.status(HttpCodes.BadRequest).send();
+        }
 
-        const roadmapScheme = new Schema({
-            name: { type: String },
-            opinion: { type: Opinion },
-            childNodes: { type: [Schema.Types.Mixed] },
-            tasks: { type: [Schema.Types.Mixed] }
-        });
+        // password min 6 chars
+        if (!req.body.password || req.body.password.length < 6) {
+            return res.status(HttpCodes.BadRequest).send();
+        }
 
-        const Roadmap = mongoose.model("Roadmap", roadmapScheme);
+        // password (repeat) does not match
+        if (
+            !req.body.rePassword ||
+            req.body.password != req.body.rePassword
+        ) {
+            return res.status(HttpCodes.BadRequest).send();
+        }
 
+        next();
+    }
 
-        Roadmap.insertMany([
-            {
-                name: "Internet",
-                childNodes: [
-                    new Roadmap({})
-                ],
+    public register = async (req: any, res: any) => {
+        const username = req.body.username;
+        const password = req.body.password;
+
+        let users = [];
+
+        try {
+            users = await this.userModel.checkExistUser(username);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+            return;
+        }
+
+        if (users.length > 0) {
+            res.status(HttpCodes.UserExists).send();
+            return;
+        }
+
+        // Username is avalible, creating hashed password
+        let hashedPassword;
+        try {
+            hashedPassword = await bcrypt.hash(password, 10);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+            return;
+        }
+
+        // Starting registration 
+        if (hashedPassword) {
+            try {
+                await this.userModel.addUser(username, hashedPassword, Date.now());
+                res.status(HttpCodes.OK).send();
+            } catch (err) {
+                res.status(HttpCodes.InternalServerError).send(err);
             }
-        ]).then(() => {
-            console.log("Сохранен объект");
-            mongoose.disconnect();  // отключение от базы данных
-        })
-            .catch((err: any) => {
-                console.log(err);
-                mongoose.disconnect();
-            });
-
-
-        /*         this.mongoClient.connect((err, client) => {
-                    if (err) {
-                        return console.log(err);
-                    }
-        
-                    // взаимодействие с базой данных
-                    const db = client.db("testdb");
-                    const collection = db.collection("users");
-        
-                         collection.insertMany(roadmapData, (err, result) => {
-                            if (err) {
-                                return console.log(err);
-                            }
-            
-                            console.log(result);
-                            client.close();
-                        }) 
-        
-                         collection.find({ name: "Keep learning" }).toArray((err, result) => {
-                            console.log(result);
-            
-                            client.close();
-            
-                        }) 
-        
-                }); */
-        res.send("hello");
+        }
     }
+
+    public login = async (req: any, res: any) => {
+        const username = req.body.username;
+        const password = req.body.password;
+
+        // Check if user with username exists in database
+        let user: IUser;
+        try {
+            const users = await this.userModel.findUser(username)
+
+            if (!users.length) {
+                res.status(HttpCodes.Unauthorized).send();
+                return;
+            }
+
+            user = users[0];
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+            return;
+        }
+
+        // Compare password with hash password from database
+        if (await bcrypt.compare(password, user.password)) {
+            const token = jwt.sign({ username: user.username, userId: user._id }, this.secretKey, { expiresIn: "7d" });
+
+            try {
+                await this.userModel.updateLastLogin(user._id, Date.now());
+                return res.status(HttpCodes.OK).send({ token: token });
+            } catch (err) {
+                res.status(HttpCodes.InternalServerError).send(err);
+                return;
+            }
+        } else {
+            res.status(HttpCodes.Unauthorized).send();
+        }
+    }
+
+    public isLoggedIn = async (req: any, res: any, next: any) => {
+        try {
+            const token = req.headers.authorization;
+            req.userData = jwt.verify(token, this.secretKey);
+
+            next();
+        } catch (err) {
+            return res.status(HttpCodes.Unauthorized).send();
+        }
+    }
+
+    public getUserData = async (req: any, res: any) => {
+        res.status(HttpCodes.OK).send(req.userData);
+    }
+
+    public updateProgress = async (req: any, res: any) => {
+        try {
+            const userId = req.userData.userId;
+            const roadmapId = req.body.roadmapId;
+            const nodeId = req.params.id;
+            const taskId = req.body.taskId;
+            const isCompleted = req.body.isCompleted;
+
+            const insertedProgress = await this.userModel.updateProgress(userId, roadmapId, nodeId, taskId, isCompleted, Date.now());
+            res.status(HttpCodes.OK).send(insertedProgress);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send();
+        }
+    }
+
+    public getProgress = async (req: any, res: any) => {
+        try {
+            const userId = req.userData.userId;
+            const roadmapId = req.params.id;
+            const progress = await this.userModel.getProgress(userId, roadmapId);
+            res.status(HttpCodes.OK).send(progress);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send();
+        }
+    }
+
+    public getAllProgress = async (req: any, res: any) => {
+        try {
+            const userId = req.userData.userId;
+            const progress = await this.userModel.getAllProgress(userId);
+            res.status(HttpCodes.OK).send(progress);
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send();
+        }
+    }
+
+    public checkPermission = async (req: any, res: any) => {
+        try {
+            const userId = req.userData.userId;
+            const user = await this.userModel.checkUser(userId);
+            res.status(HttpCodes.OK).send({ isAdmin: user.isAdmin ?? false });
+        } catch (err) {
+            res.status(HttpCodes.InternalServerError).send(err);
+        }
+    }
+
 }

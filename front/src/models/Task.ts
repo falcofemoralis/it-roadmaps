@@ -1,10 +1,15 @@
 export default class Task {
+    id: string | undefined;
     name: string;
     description: string;
-    opinionId: string | undefined;
+    opinionId: string;
+    isCompleted: boolean | undefined;
+    time: number | undefined;
 
-    constructor(name: string, description: string) {
+    constructor(id: string, name: string, description: string, opinionId: string) {
+        this.id = id;
         this.name = name;
         this.description = description;
+        this.opinionId = opinionId;
     }
 }

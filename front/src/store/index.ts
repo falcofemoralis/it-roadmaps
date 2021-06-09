@@ -1,19 +1,38 @@
 import { createStore } from 'vuex'
-import Opinion from "@/models/Opinion";
-import Roadmap from "@/models/Roadmap";
+import { VueCookieNext } from 'vue-cookie-next'
 
 export interface State {
-  opinions: Array<Opinion>
+  token: string
+  isAdmin: boolean
 }
 
 export const store = createStore({
   state: {
-    opinions: [],
+    token: '' as string,
+    isAdmin: false as boolean
+  },
+  getters: {
+    getToken: state => {
+      return state.token;
+    }
   },
   mutations: {
+    SET_TOKEN: (state, token) => {
+      VueCookieNext.setCookie("token", token)
+      state.token = token;
+    },
+    RESET: state => {
+      VueCookieNext.removeCookie("token");
+      state.isAdmin = false;
+      state.token = "";
+    }
   },
   actions: {
-  },
-  modules: {
+    login: ({ commit }, { token }) => {
+      commit('SET_TOKEN', token);
+    },
+    logout: ({ commit }) => {
+      commit('RESET', '');
+    }
   }
 })

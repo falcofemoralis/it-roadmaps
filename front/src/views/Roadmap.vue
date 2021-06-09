@@ -3,21 +3,29 @@
     <div class="roadmap-info">
       <h2>This is an roadmap page of {{ roadmap.name }}</h2>
       <span>Step by step guide to becoming a modern frontend developer</span>
-      <button class="save-btn" @click="saveRoadmap">Save roadmap</button>
+      <!--  <span v-if="msg">{{ msg }}</span> -->
     </div>
     <ul class="roadmap">
       <li
         class="roadmap-block"
-        v-for="(block, index) in getRoadmapBlocks(roadmapData)"
+        v-for="(block, index) in getRoadmapBlocks()"
         :key="index"
       >
         <ul class="roadmap-nodes">
           <li v-for="(nodes, index) in block" :key="index">
             <ul>
               <li v-for="node in nodes" :key="node.id">
-                <RoadmapNode :node="node">
+                <RoadmapNode
+                  :opinions="opinions"
+                  :node="node"
+                  @progress="updateProgress"
+                >
                   <template v-slot:addTask>
-                    <button class="add-btn" @click="createTask(node)">
+                    <button
+                      class="add-btn"
+                      @click="createTask(node)"
+                      v-if="$store.state.isAdmin"
+                    >
                       New task
                     </button>
                   </template>
@@ -26,192 +34,197 @@
             </ul>
           </li>
           <li class="btn-wrapper">
-            <button class="add-btn" @click="createNode(block[0][0].id)">
+            <button
+              class="add-btn"
+              @click="createNode(block[0][0].id)"
+              v-if="$store.state.isAdmin"
+            >
               New node
             </button>
           </li>
         </ul>
       </li>
-      <li class="btn-wrapper">
-        <button class="add-btn" @click="createNode()">New block</button>
+      <li class="btn-wrapper" v-if="$store.state.isAdmin">
+        <button class="add-btn" @click="createBlock">New block</button>
       </li>
     </ul>
 
-    <!-- Modal for enter node data -->
-    <DataModal v-show="nodeDataActive" @save="saveNode" @close="close(0)">
-      <template v-slot:header>
-        <span>Enter node info</span>
-      </template>
-      <template v-slot:body>
-        <div>
-          <label>Name: </label>
-          <input type="text" v-model="nodeTmp.name" />
-        </div>
-        <select v-model="nodeTmp.opinionId">
-          <option
-            v-for="(opinion, index) in $store.state.opinions"
-            :key="index"
-            :value="opinion._id"
-            :style="'color: ' + opinion.color"
-          >
-            {{ opinion.name }}
-          </option>
-        </select>
-      </template>
-    </DataModal>
-    <!-- Modal for enter task data -->
-    <DataModal v-show="taskDataActive" @save="saveTask" @close="close(1)">
-      <template v-slot:header>
-        <span>Enter task info</span>
-      </template>
-      <template v-slot:body>
-        <div>
-          <label>Name: </label>
-          <input type="text" v-model="taskTmp.name" />
-        </div>
-        <div>
-          <label>Description: </label>
-          <input type="text" v-model="taskTmp.description" />
-        </div>
-        <select v-model="taskTmp.opinionId">
-          <option
-            v-for="(opinion, index) in $store.state.opinions"
-            :key="index"
-            :value="opinion._id"
-            :style="'color: ' + opinion.color"
-          >
-            {{ opinion.name }}
-          </option>
-        </select>
-      </template>
-    </DataModal>
+    <NewNodeModal
+      v-show="nodeModalActive"
+      :opinions="opinions"
+      @save="saveNode"
+      @close="close(0)"
+    />
+    <NewTaskModal
+      v-show="taskModalActive"
+      :opinions="opinions"
+      @save="saveTask"
+      @close="close(1)"
+    />
   </div>
 </template>
 
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { plainToClass } from "class-transformer";
 import Node from "@/models/Node";
 import Task from "@/models/Task";
-import Opinion from "@/models/Opinion";
 import RoadmapNode from "@/components/RoadmapNode.vue";
-import DataModal from "@/components/DataModal.vue";
 import Roadmap from "@/models/Roadmap";
+import RoadmapsService from "@/services/RoadmapService";
+import AuthService from "@/services/AuthService";
+import NewNodeModal from "@/components/NewNodeModal.vue";
+import NewTaskModal from "@/components/NewTaskModal.vue";
+import Progress from "@/models/Progress";
+import Opinion from "@/models/Opinion";
 
 export default defineComponent({
   components: {
     RoadmapNode,
-    DataModal,
+    NewNodeModal,
+    NewTaskModal,
   },
   data() {
     return {
       roadmap: {} as Roadmap,
-      roadmapData: [] as Array<Node>,
-      roadmapDataToSend: [] as Array<Node>,
-      roadmapDataToUpdate: [] as Array<Node>,
-      nodeDataActive: false as boolean,
-      taskDataActive: false as boolean,
+      roadmapData: [] as Node[],
+      nodeModalActive: false as boolean,
+      taskModalActive: false as boolean,
+      msg: "" as string,
+      parentIdTmp: null as string | null,
       nodeTmp: {} as Node,
-      taskTmp: {} as Task,
+      progress: [] as Progress[],
+      opinions: [] as Opinion[],
     };
   },
   created() {
-    this.$api.roadmaps.get("/opinions").then((opinionsJson: Array<Opinion>) => {
-      if (opinionsJson) {
-        this.$store.state.opinions = plainToClass(Opinion, opinionsJson);
-      }
-    });
+    // Download roadmap
+    RoadmapsService.getRoadmap(this.$route.params.id as string)
+      .then((roadmap) => {
+        this.roadmap = roadmap;
 
-    this.$api.roadmaps
-      .get(`/${this.$route.params.id}`)
-      .then((roadmapJson: Roadmap) => {
-        this.roadmap = plainToClass(Roadmap, roadmapJson);
+        RoadmapsService.getOpinions()
+          .then((opinions) => {
+            this.opinions = opinions;
+          })
+          .catch((err) => (this.msg = err));
 
-        this.$api.roadmaps
-          .get(`/nodes/${this.roadmap._id}`)
-          .then((roadmapDataJson: Array<Node>) => {
-            if (roadmapDataJson) {
-              this.roadmapData = plainToClass(Node, roadmapDataJson);
-            }
-          });
-      });
+        // Download roadmap data (nodes)
+        RoadmapsService.getRoadmapData(this.roadmap.id as string)
+          .then((roadmapData) => (this.roadmapData = roadmapData))
+          .catch((err) => (this.msg = err));
+
+        // Download user progress
+        AuthService.getProgress(this.roadmap.id as string)
+          .then((progress) => (this.progress = progress))
+          .catch((err) => (this.msg = err));
+      })
+      .catch((err) => (this.msg = err));
   },
   methods: {
-    getRoadmapBlocks(roadmapData: Node[]) {
+    getRoadmapBlocks() {
       const blocks: Node[][][] = [];
 
-      for (let i = 0; i < roadmapData.length; i++) {
-        if (!roadmapData[i].parentId) {
-          blocks.push([[roadmapData[i]]]);
+      for (let i = 0; i < this.progress.length; i++) {
+        this.applyProgress(this.progress[i]);
+      }
+
+      for (let i = 0; i < this.roadmapData.length; i++) {
+        if (!this.roadmapData[i].parentId) {
+          blocks.push([[this.roadmapData[i]]]);
         }
       }
 
-      for (let i = 0; i < roadmapData.length; i++) {
+      for (let i = 0; i < this.roadmapData.length; i++) {
         for (let j = 0; j < blocks.length; ++j) {
-          if (blocks[j][0][0].id === roadmapData[i].parentId) {
+          if (blocks[j][0][0].id === this.roadmapData[i].parentId) {
             if (!blocks[j][1]) blocks[j][1] = [];
-            blocks[j][1].push(roadmapData[i]);
+            blocks[j][1].push(this.roadmapData[i]);
           }
         }
       }
 
       return blocks;
     },
-    createNode(parentId: number) {
-      console.log(this.roadmap);
+    applyProgress(progress: Progress) {
+      for (let j = 0; j < this.roadmapData.length; j++) {
+        const node = this.roadmapData[j];
 
-      this.nodeTmp = new Node(this.roadmap._id ?? "", "", {
-        parentId: parentId ?? null,
+        if (progress.nodeId === node.id && node.tasks) {
+          for (let n = 0; n < node.tasks.length; n++) {
+            const task = node.tasks[n];
+
+            if (task.id === progress.taskId) {
+              task.isCompleted = progress.isCompleted;
+            }
+          }
+        }
+      }
+    },
+    createBlock() {
+      this.nodeModalActive = true;
+    },
+    createNode(parentId: string) {
+      this.parentIdTmp = parentId;
+      this.nodeModalActive = true;
+    },
+    saveNode(name: string, opinionId: string) {
+      const node = new Node("", this.roadmap.id as string, name, {
+        opinionId: opinionId,
+        parentId: this.parentIdTmp,
       });
-      this.nodeDataActive = true;
+
+      if (this.parentIdTmp) {
+        this.parentIdTmp = null;
+      }
+
+      RoadmapsService.saveNode(node)
+        .then((id) => {
+          node.id = id;
+
+          this.nodeModalActive = false;
+          this.roadmapData.push(node);
+        })
+        .catch((err) => console.log(err));
     },
     createTask(node: Node) {
-      this.taskDataActive = true;
-
       this.nodeTmp = node;
-      if (!this.nodeTmp.tasks) {
-        this.nodeTmp.tasks = [];
-      }
-      this.taskTmp = new Task("", "");
+      this.taskModalActive = true;
     },
-    saveNode() {
-      this.nodeDataActive = false;
-      this.roadmapData.push(this.nodeTmp);
-      this.roadmapDataToSend.push(this.nodeTmp);
-    },
-    saveTask() {
-      if (this.nodeTmp.tasks) {
-        this.nodeTmp.tasks.push(this.taskTmp);
-      }
+    saveTask(name: string, description: string, opinionId: string) {
+      const task = new Task("", name, description, opinionId);
+      const tasks = this.nodeTmp.tasks ?? [];
+      tasks.push(task);
 
-      if (!this.isToUpdate(this.nodeTmp)) {
-        this.roadmapDataToUpdate.push(this.nodeTmp);
-      }
+      RoadmapsService.updateNode(this.nodeTmp.id, { tasks: tasks })
+        .then(() => {
+          /*  for (let i = 0; i < this.roadmapData.length; i++) {
+            if (this.roadmapData[i].id == updatedNode.id) {
+              this.roadmapData[i] = updatedNode;
+              console.log(this.roadmapData[i]);
 
-      this.taskDataActive = false;
+              break;
+            }
+          } */
+
+          this.taskModalActive = false;
+        })
+        .catch((err) => console.log(err));
     },
     close(modal: number) {
       if (modal === 0) {
-        this.nodeDataActive = false;
+        this.nodeModalActive = false;
       } else if (modal === 1) {
-        this.taskDataActive = false;
+        this.taskModalActive = false;
       }
     },
-    isToUpdate(node: Node) {
-      const isOnUpdate = this.roadmapDataToUpdate.find(
-        (el: Node) => el.id === node.id
-      );
-      return isOnUpdate;
-    },
-    async saveRoadmap() {
-      if (this.roadmapDataToSend.length > 0) {
-        this.$api.roadmaps.post("/nodes", this.roadmapDataToSend);
-      }
-
-      if (this.roadmapDataToUpdate.length > 0) {
-        this.$api.roadmaps.put("/nodes", this.roadmapDataToUpdate);
-      }
+    updateProgress(isCompleted: boolean, nodeId: string, taskId: string) {
+      AuthService.updateProgress(
+        this.roadmap.id as string,
+        nodeId,
+        taskId,
+        isCompleted
+      ).catch((err) => console.log(err));
     },
   },
 });
@@ -219,43 +232,21 @@ export default defineComponent({
 
 
 <style lang="scss" scoped>
+@import "@/styles/elements.scss";
+
 .roadmap-info {
+  @extend %info;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  padding: 25px;
-
-  h2 {
-    font-weight: 700;
-    margin-bottom: 12px;
-    font-size: 48px;
-  }
-
-  span {
-    font-size: 16px;
-    color: rgb(68, 68, 68);
-  }
 }
 
 .roadmap {
-  padding: 20px 0 20px;
-  position: relative;
+  @extend %timeline-page;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #ebebeb;
-
-  &:before {
-    top: 0;
-    bottom: 0;
-    position: absolute;
-    content: " ";
-    width: 3px;
-    background-color: rgb(102, 102, 102);
-    left: 50%;
-    z-index: 0;
-  }
 
   .roadmap-block {
     margin-bottom: 50px;
@@ -268,10 +259,6 @@ export default defineComponent({
     align-items: center;
     flex-direction: column;
   }
-}
-
-.wrapper {
-  max-width: none !important;
 }
 
 %btn {
