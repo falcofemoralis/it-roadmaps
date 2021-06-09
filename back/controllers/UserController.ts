@@ -56,7 +56,7 @@ export default class UserController {
         }
 
         if (users.length > 0) {
-            res.status(HttpCodes.BadRequest).send();
+            res.status(HttpCodes.UserExists).send();
             return;
         }
 

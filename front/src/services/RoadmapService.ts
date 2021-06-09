@@ -79,14 +79,15 @@ class RoadmapsApiService extends ModelApiService {
         const response = await this.put("/node", data, nodeId);
 
         if (response.status == 200) {
-            const dataJson = await response.json();
+            return;
+            /*   const dataJson = await response.json(); */
 
-            const tasks: Task[] = [];
-            dataJson.tasks.forEach((task: any) => {
-                tasks.push(new Task(task._id, task.name, task.description, task.opinionId));
-            });
+            /*   const tasks: Task[] = []; */
+            /*   dataJson.tasks.forEach((task: any) => { */
+            /*       tasks.push(new Task(task._id, task.name, task.description, task.opinionId)); */
+            /*   }); */
 
-            return new Node(dataJson._id, dataJson.roadmapId, dataJson.name, { opinionId: dataJson.opinionId, tasks: tasks, parentId: dataJson.parentId });
+            /*   return new Node(dataJson._id, dataJson.roadmapId, dataJson.name, { opinionId: dataJson.opinionId, tasks: tasks, parentId: dataJson.parentId }); */
         } else {
             throw new Error(`Error code: ${response.status}`)
         }

@@ -4,7 +4,7 @@
       <li v-for="roadmap in roadmaps" :key="roadmap.id">
         <RoadmapCard :roadmap="roadmap" />
       </li>
-      <li>
+      <li v-if="$store.state.isAdmin">
         <button class="add-btn" @click="createRoadmap">+</button>
       </li>
     </ul>

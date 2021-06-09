@@ -3,6 +3,7 @@ import { VueCookieNext } from 'vue-cookie-next'
 
 export interface State {
   token: string
+  isAdmin: boolean
 }
 
 export const store = createStore({
@@ -22,6 +23,7 @@ export const store = createStore({
     },
     RESET: state => {
       VueCookieNext.removeCookie("token");
+      state.isAdmin = false;
       state.token = "";
     }
   },

@@ -28,28 +28,24 @@
 
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import DataModal from "@/components/DataModal.vue";
 import Opinion from "@/models/Opinion";
-import RoadmapService from "@/services/RoadmapService";
 
 export default defineComponent({
   name: "NewTaskModal",
   components: {
     DataModal,
   },
+  props: {
+    opinions: { type: Array as PropType<Array<Opinion>>, required: true },
+  },
   data() {
     return {
       name: "" as string,
       description: "" as string,
       opinionId: "" as string,
-      opinions: [] as Opinion[],
     };
-  },
-  created() {
-    RoadmapService.getOpinions().then((opinions) => {
-      this.opinions = opinions;
-    });
   },
   methods: {
     saveTaskModal() {

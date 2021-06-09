@@ -15,6 +15,7 @@
         <TaskComponent
           :class="index % 2 == 0 ? 'timeline-panel' : 'timeline-panel-inverted'"
           class="timeline-task"
+          :opinions="opinions"
           :name="progressTask.task.name"
           :description="progressTask.task.description"
           :opinionId="progressTask.task.opinionId"
@@ -39,6 +40,7 @@ import Progress from "@/models/Progress";
 import Node from "@/models/Node";
 import { ProgressTask } from "@/models/Progress";
 import TaskComponent from "@/components/TaskComponent.vue";
+import Opinion from "@/models/Opinion";
 
 export default defineComponent({
   name: "Progress",
@@ -50,13 +52,20 @@ export default defineComponent({
       progress: [] as Progress[],
       msg: "" as string,
       roadmapData: [] as Node[],
+      opinions: [] as Opinion[],
     };
   },
   created() {
+    RoadmapsService.getOpinions()
+      .then((opinions) => {
+        this.opinions = opinions;
+      })
+      .catch((err) => (this.msg = err));
+
     // Download roadmap data (nodes)
     RoadmapsService.getRoadmapData()
       .then((roadmapData) => (this.roadmapData = roadmapData))
-      .catch((err: any) => (this.msg = err));
+      .catch((err) => (this.msg = err));
 
     // Download user progress
     AuthService.getProgress()

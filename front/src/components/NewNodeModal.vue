@@ -24,9 +24,8 @@
 
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import DataModal from "@/components/DataModal.vue";
-import RoadmapService from "@/services/RoadmapService";
 import Opinion from "@/models/Opinion";
 
 export default defineComponent({
@@ -34,17 +33,14 @@ export default defineComponent({
   components: {
     DataModal,
   },
+  props: {
+    opinions: { type: Array as PropType<Array<Opinion>>, required: true },
+  },
   data() {
     return {
       name: "" as string,
       opinionId: null as string | null,
-      opinions: [] as Opinion[],
     };
-  },
-  created() {
-    RoadmapService.getOpinions().then((opinions) => {
-      this.opinions = opinions;
-    });
   },
   methods: {
     saveNodeModal() {

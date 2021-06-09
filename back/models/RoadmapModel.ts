@@ -57,7 +57,7 @@ export default class RoadmapModel {
     }
 
     public async updateNode(nodeId: string, data: any) {
-        return await this.NodeModel.findOneAndUpdate({ _id: nodeId }, data);
+        await this.NodeModel.updateOne({ _id: nodeId }, data);
     }
 
     public async addRoadmap(roadmap: any) {

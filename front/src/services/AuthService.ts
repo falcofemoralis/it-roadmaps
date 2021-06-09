@@ -12,7 +12,13 @@ class UsersApiService extends ModelApiService {
 
         if (response.status == 200) {
             return await this.login(credentials);
-        } else {
+        } else if (response.status == 409) {
+            throw new Error(`Enter username and password!`);
+        }
+        else if (response.status == 408) {
+            throw new Error(`User with such username already exists!`);
+        }
+        else {
             throw new Error(`Error occured with status ${response.status}`);
         }
     }
@@ -23,7 +29,9 @@ class UsersApiService extends ModelApiService {
         if (response.status == 200) {
             const dataJson = await response.json();
             return dataJson.token;
-        } else {
+        } else if (response.status == 401)
+            throw new Error("Такого юзера нету, зарегайся скотина");
+        else {
             throw new Error(`Error occured with status ${response.status}`);
         }
     }

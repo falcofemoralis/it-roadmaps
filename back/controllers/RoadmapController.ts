@@ -79,8 +79,8 @@ export default class RoadmapController {
 
     public updateNode = async (req: any, res: any) => {
         try {
-            const updatedNode = await this.roadmapModel.updateNode(req.params.id, req.body);
-            res.status(HttpCodes.OK).send(updatedNode);
+            await this.roadmapModel.updateNode(req.params.id, req.body);
+            res.status(HttpCodes.OK).send();
         } catch (err) {
             res.status(HttpCodes.InternalServerError).send(err);
         }

@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import Opinion from "@/models/Opinion";
 import RoadmapService from "@/services/RoadmapService";
 
@@ -26,6 +26,7 @@ export default defineComponent({
     name: { type: String, required: true },
     description: { type: String, required: true },
     opinionId: { type: String, required: true },
+    opinions: { type: Array as PropType<Array<Opinion>>, required: true },
   },
   data() {
     return {
@@ -33,13 +34,14 @@ export default defineComponent({
     };
   },
   created() {
-    RoadmapService.getOpinions().then((opinions) => {
-      const opinion = RoadmapService.getOpinionById(opinions, this.opinionId);
+    const opinion = RoadmapService.getOpinionById(
+      this.opinions,
+      this.opinionId
+    );
 
-      if (opinion) {
-        this.opinion = opinion;
-      }
-    });
+    if (opinion) {
+      this.opinion = opinion;
+    }
   },
 });
 </script>

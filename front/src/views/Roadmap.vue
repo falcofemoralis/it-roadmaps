@@ -15,7 +15,11 @@
           <li v-for="(nodes, index) in block" :key="index">
             <ul>
               <li v-for="node in nodes" :key="node.id">
-                <RoadmapNode :node="node" @progress="updateProgress">
+                <RoadmapNode
+                  :opinions="opinions"
+                  :node="node"
+                  @progress="updateProgress"
+                >
                   <template v-slot:addTask>
                     <button
                       class="add-btn"
@@ -45,8 +49,18 @@
       </li>
     </ul>
 
-    <NewNodeModal v-show="nodeModalActive" @save="saveNode" @close="close(0)" />
-    <NewTaskModal v-show="taskModalActive" @save="saveTask" @close="close(1)" />
+    <NewNodeModal
+      v-show="nodeModalActive"
+      :opinions="opinions"
+      @save="saveNode"
+      @close="close(0)"
+    />
+    <NewTaskModal
+      v-show="taskModalActive"
+      :opinions="opinions"
+      @save="saveTask"
+      @close="close(1)"
+    />
   </div>
 </template>
 
@@ -62,6 +76,7 @@ import AuthService from "@/services/AuthService";
 import NewNodeModal from "@/components/NewNodeModal.vue";
 import NewTaskModal from "@/components/NewTaskModal.vue";
 import Progress from "@/models/Progress";
+import Opinion from "@/models/Opinion";
 
 export default defineComponent({
   components: {
@@ -79,6 +94,7 @@ export default defineComponent({
       parentIdTmp: null as string | null,
       nodeTmp: {} as Node,
       progress: [] as Progress[],
+      opinions: [] as Opinion[],
     };
   },
   created() {
@@ -87,19 +103,24 @@ export default defineComponent({
       .then((roadmap) => {
         this.roadmap = roadmap;
 
+        RoadmapsService.getOpinions()
+          .then((opinions) => {
+            this.opinions = opinions;
+          })
+          .catch((err) => (this.msg = err));
+
         // Download roadmap data (nodes)
         RoadmapsService.getRoadmapData(this.roadmap.id as string)
           .then((roadmapData) => (this.roadmapData = roadmapData))
-          .catch((err: any) => (this.msg = err));
+          .catch((err) => (this.msg = err));
 
         // Download user progress
         AuthService.getProgress(this.roadmap.id as string)
           .then((progress) => (this.progress = progress))
           .catch((err) => (this.msg = err));
       })
-      .catch((err: any) => (this.msg = err));
+      .catch((err) => (this.msg = err));
   },
-  computed: {},
   methods: {
     getRoadmapBlocks() {
       const blocks: Node[][][] = [];
@@ -176,14 +197,15 @@ export default defineComponent({
       tasks.push(task);
 
       RoadmapsService.updateNode(this.nodeTmp.id, { tasks: tasks })
-        .then((updatedNode) => {
-          for (let i = 0; i < this.roadmapData.length; i++) {
-            if (this.roadmapData[i].id == this.nodeTmp.id) {
-              this.nodeTmp.tasks = updatedNode.tasks;
-              this.roadmapData[i] = this.nodeTmp;
+        .then(() => {
+          /*  for (let i = 0; i < this.roadmapData.length; i++) {
+            if (this.roadmapData[i].id == updatedNode.id) {
+              this.roadmapData[i] = updatedNode;
+              console.log(this.roadmapData[i]);
+
               break;
             }
-          }
+          } */
 
           this.taskModalActive = false;
         })

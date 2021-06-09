@@ -6,6 +6,7 @@
     <ul v-if="node.tasks" class="roadmap-tasks">
       <li v-for="(task, index) in node.tasks" :key="index">
         <TaskComponent
+          :opinions="opinions"
           :name="task.name"
           :description="task.description"
           :opinionId="task.opinionId"
@@ -39,7 +40,7 @@
 
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import Node from "@/models/Node";
 import Task from "@/models/Task";
 import TaskComponent from "@/components/TaskComponent.vue";
@@ -56,6 +57,7 @@ export default defineComponent({
       type: Node,
       required: true,
     },
+    opinions: { type: Array as PropType<Array<Opinion>>, required: true },
   },
   data() {
     return {
@@ -64,13 +66,16 @@ export default defineComponent({
     };
   },
   created() {
-    RoadmapService.getOpinions().then((opinions) => {
-      const opinion = RoadmapService.getOpinionById(opinions, this.node.id);
+    if (this.node.opinionId) {
+      const opinion = RoadmapService.getOpinionById(
+        this.opinions,
+        this.node.opinionId
+      );
 
       if (opinion) {
         this.opinion = opinion;
       }
-    });
+    }
   },
   methods: {
     showMsg(msg: string) {
