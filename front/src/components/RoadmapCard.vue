@@ -6,12 +6,11 @@
         src="../assets/card_preview.png"
         alt="preview"
       />
+      <div class="card__about">
+        <h3>{{ roadmap.name }}</h3>
+        <span>{{ roadmap.description }}</span>
+      </div>
     </router-link>
-    <div class="card__about">
-      <h3>{{ roadmap.name }}</h3>
-      <span>{{ roadmap.description }}</span>
-      <a href="">Open roadmap</a>
-    </div>
   </div>
 </template>
 

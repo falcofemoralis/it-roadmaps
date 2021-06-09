@@ -142,8 +142,6 @@ export default class UserController {
             const insertedProgress = await this.userModel.updateProgress(userId, roadmapId, nodeId, taskId, isCompleted, Date.now());
             res.status(HttpCodes.OK).send(insertedProgress);
         } catch (err) {
-            console.log(err);
-
             res.status(HttpCodes.InternalServerError).send();
         }
     }
@@ -173,13 +171,8 @@ export default class UserController {
         try {
             const userId = req.userData.userId;
             const user = await this.userModel.checkUser(userId);
-            console.log(user);
-            console.log(user.isAdmin);
-
             res.status(HttpCodes.OK).send({ isAdmin: user.isAdmin ?? false });
         } catch (err) {
-            console.log(err);
-
             res.status(HttpCodes.InternalServerError).send(err);
         }
     }

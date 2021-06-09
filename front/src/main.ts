@@ -7,6 +7,6 @@ import { VueCookieNext } from 'vue-cookie-next'
 import AuthService from '@/services/AuthService'
 
 store.state.token = VueCookieNext.getCookie("token")
-AuthService.checkPermission().then((isAdmin) => store.state.isAdmin = isAdmin).catch((err) => console.log(err));
+AuthService.checkPermission().then((isAdmin) => store.state.isAdmin = isAdmin);
 
 createApp(App).use(VueCookieNext).use(store).use(router).mount('#app')

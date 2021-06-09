@@ -53,7 +53,7 @@ export default defineComponent({
   justify-content: space-between;
   align-items: center;
   flex-direction: column;
-  min-height: 150px;
+  /* min-height: 100px; */
   min-width: 225px;
   max-width: 250px;
   font-size: 14px;

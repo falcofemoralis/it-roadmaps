@@ -77,8 +77,6 @@ class UsersApiService extends ModelApiService {
 
         if (response.status == 200) {
             const isAdmin = (await response.json()).isAdmin;
-            console.log(isAdmin);
-
             return isAdmin;
         } else {
             throw new Error(`Error occured with status ${response.status}`);

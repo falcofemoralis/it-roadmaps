@@ -10,14 +10,17 @@
           :description="task.description"
           :opinionId="task.opinionId"
         >
-          <template v-slot:controls v-if="$store.state.token">
-            <div class="task-controls">
+          <template v-slot:controls>
+            <div class="task-controls" v-if="$store.state.token">
               <span v-if="!task.isCompleted" @click="saveProgress(true, task)">
                 I know it
               </span>
               <span v-else @click="saveProgress(false, task)">
                 I forget this
               </span>
+            </div>
+            <div class="task-controls" v-else>
+              <span @click="showAlert">I know it</span>
             </div>
           </template>
         </TaskComponent>
@@ -76,6 +79,9 @@ export default defineComponent({
     saveProgress(isCompleted: boolean, task: Task) {
       task.isCompleted = !task.isCompleted;
       this.$emit("progress", isCompleted, this.node.id, task.id);
+    },
+    showAlert() {
+      alert("Sign up or login to achieve it!");
     },
   },
 });

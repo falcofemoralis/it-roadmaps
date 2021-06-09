@@ -1,7 +1,9 @@
 <template>
   <div class="nav">
     <div class="links">
-      <img class="logo" src="../assets/logo.png" />
+      <router-link to="/">
+        <img class="logo" src="../assets/logo.png" />
+      </router-link>
       <router-link to="/">Roadmaps</router-link>
       <router-link v-if="isLoggedIn" to="/progress">| My progress</router-link>
     </div>
@@ -12,9 +14,12 @@
         <button @click="logOut">Log out</button>
       </div>
     </div>
-    <div v-if="!isLoggedIn">
-      <router-link to="/registration">Sign up</router-link> |
-      <router-link to="/login">Login</router-link>
+    <div class="links" v-if="!isLoggedIn">
+      <button @click="changeModal(1, true)">Sign up</button> |
+      <button @click="changeModal(0, true)">Login</button>
+
+      <SignUp v-show="isRegisterModal" @close="changeModal(1, false)" />
+      <Login v-show="isLoginModal" @close="changeModal(0, false)" />
     </div>
   </div>
 </template>
@@ -24,18 +29,36 @@
 import { defineComponent } from "vue";
 import AuthService from "@/services/AuthService";
 import User from "@/models/User";
+import Login from "@/components/Login.vue";
+import SignUp from "@/components/SignUp.vue";
 
 export default defineComponent({
   name: "Header",
+  components: {
+    Login,
+    SignUp,
+  },
   data() {
     return {
       isUsermenu: false as boolean,
       username: "" as string,
+      isLoginModal: false as boolean,
+      isRegisterModal: false as boolean,
     };
   },
   methods: {
     changeState() {
       this.isUsermenu = !this.isUsermenu;
+    },
+    changeModal(type: number, state: boolean) {
+      switch (type) {
+        case 0:
+          this.isLoginModal = state;
+          break;
+        case 1:
+          this.isRegisterModal = state;
+          break;
+      }
     },
     logOut() {
       this.$store.dispatch("logout");
@@ -104,6 +127,16 @@ $header-height: 50px;
     &.router-link-exact-active {
       color: #42b983;
     }
+  }
+
+  button {
+    color: #2c3e50;
+    font-weight: bold;
+    margin: 0 7px 0 7px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
   }
 }
 

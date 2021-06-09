@@ -1,9 +1,9 @@
 <template>
   <div class="container wrapper">
-    <div class="progress-info">
+    <div class="progress-info" v-if="progress.length > 0">
       <span v-if="msg">{{ msg }}</span>
     </div>
-    <ul class="timeline">
+    <ul class="timeline" v-if="progress.length > 0">
       <li
         class="timeline-block"
         v-for="(progressTask, index) in getTasks()"
@@ -21,6 +21,13 @@
         />
       </li>
     </ul>
+    <div class="progress-info" v-else>
+      <h2>
+        You don't have progress. Go to
+        <router-link class="link" to="/">roadmaps</router-link> and learn
+        things!
+      </h2>
+    </div>
   </div>
 </template>
 
@@ -53,7 +60,9 @@ export default defineComponent({
 
     // Download user progress
     AuthService.getProgress()
-      .then((progress) => (this.progress = progress))
+      .then((progress) => {
+        this.progress = progress;
+      })
       .catch((err) => (this.msg = err));
   },
   methods: {
@@ -92,9 +101,6 @@ export default defineComponent({
           }
         }
       }
-
-      console.log(progressTasks);
-
       return progressTasks;
     },
   },
@@ -110,6 +116,10 @@ export default defineComponent({
   justify-content: center;
   align-items: center;
   flex-direction: column;
+}
+
+.link {
+  color: #42b983;
 }
 
 .timeline {

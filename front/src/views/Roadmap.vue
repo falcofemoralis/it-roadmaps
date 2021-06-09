@@ -3,7 +3,7 @@
     <div class="roadmap-info">
       <h2>This is an roadmap page of {{ roadmap.name }}</h2>
       <span>Step by step guide to becoming a modern frontend developer</span>
-      <span v-if="msg">{{ msg }}</span>
+      <!--  <span v-if="msg">{{ msg }}</span> -->
     </div>
     <ul class="roadmap">
       <li
