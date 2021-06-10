@@ -106,17 +106,17 @@ export default defineComponent({
         RoadmapsService.getOpinions()
           .then((opinions) => {
             this.opinions = opinions;
+
+            // Download roadmap data (nodes)
+            RoadmapsService.getRoadmapData(this.roadmap.id as string)
+              .then((roadmapData) => (this.roadmapData = roadmapData))
+              .catch((err) => (this.msg = err));
+
+            // Download user progress
+            AuthService.getProgress(this.roadmap.id as string)
+              .then((progress) => (this.progress = progress))
+              .catch((err) => (this.msg = err));
           })
-          .catch((err) => (this.msg = err));
-
-        // Download roadmap data (nodes)
-        RoadmapsService.getRoadmapData(this.roadmap.id as string)
-          .then((roadmapData) => (this.roadmapData = roadmapData))
-          .catch((err) => (this.msg = err));
-
-        // Download user progress
-        AuthService.getProgress(this.roadmap.id as string)
-          .then((progress) => (this.progress = progress))
           .catch((err) => (this.msg = err));
       })
       .catch((err) => (this.msg = err));

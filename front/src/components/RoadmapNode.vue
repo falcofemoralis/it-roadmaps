@@ -10,6 +10,7 @@
           :name="task.name"
           :description="task.description"
           :opinionId="task.opinionId"
+          :class="task.isCompleted ? 'completed-task' : ''"
         >
           <template v-slot:controls>
             <div class="task-controls" v-if="$store.state.token">
@@ -17,7 +18,7 @@
                 I know it
               </span>
               <span v-else @click="saveProgress(false, task)">
-                I forget this
+                Forget this
               </span>
             </div>
             <div class="task-controls" v-else>
@@ -143,5 +144,9 @@ export default defineComponent({
 
 .opinion {
   @extend %opinion;
+}
+
+.completed-task {
+  background: #128eff !important;
 }
 </style>
